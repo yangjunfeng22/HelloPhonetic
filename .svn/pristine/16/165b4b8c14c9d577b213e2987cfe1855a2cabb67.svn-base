@@ -1,0 +1,135 @@
+//
+//  DoublePhoneCell.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/27.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "DoublePhoneCell.h"
+#import "Record+path.h"
+#import "UIView+Additions.h"
+#import "AnimateHelper.h"
+
+#import <AVFoundation/AVFoundation.h>
+
+static const NSString *audioBundle = @"DoublePhone";
+
+@interface DoublePhoneCell ()
+
+// 双音节需要播放两个音节的音频，用以控制播放代理的回调次数
+@property (nonatomic) NSInteger roopCount;
+
+@end
+
+@implementation DoublePhoneCell
+
+- (void)awakeFromNib
+{
+    _roopCount = 1;
+    self.backgroundColor = self.superview.backgroundColor;
+    self.audioControlView.delegate = self;
+    self.audioControlView.backgroundColor = self.backgroundColor;
+    
+    self.toneBackgroundView.backgroundColor = self.backgroundColor;
+    self.toneBackgroundView.layer.borderColor = kColor00Background.CGColor;
+    self.toneBackgroundView.layer.borderWidth = 1;
+    self.toneFirstView.backgroundColor = kColorLightGreen;
+    self.toneSecondView.backgroundColor = kColorLightGreen;
+    
+//    self.toneFirstView.toneHeight = 14;
+//    self.toneSecondView.toneHeight = 14;
+    self.toneFirstView.toneTintColor = RGBA(0, 174, 224, 1);
+    self.toneSecondView.toneTintColor = RGBA(0, 174, 224, 1);
+    
+    self.lblContentFirst.backgroundColor = self.backgroundColor;
+    self.lblContentSecond.backgroundColor = self.backgroundColor;
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    
+    [self.toneFirstView clearTone];
+    [self.toneSecondView clearTone];
+}
+
+- (void)layoutSubviewsAppear
+{
+    self.audioControlView.alpha = 0;
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.audioControlView.alpha = 1;
+        [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1N.y toCenterY:center1O.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    self.toneBackgroundView.alpha = 0;
+    CGPoint center2O = self.toneBackgroundView.center;
+    CGPoint center2N = CGPointMake(self.toneBackgroundView.centerX, -self.toneBackgroundView.height);
+    [AnimateHelper transitionLayer:self.toneBackgroundView.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.toneBackgroundView.alpha = 1;
+        [AnimateHelper transitionLayer:self.toneBackgroundView.layer fromCenterY:center2N.y toCenterY:center2O.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    CGFloat duration = 0.5;
+    self.lblContentFirst.alpha = 0;
+    self.lblContentSecond.alpha = 0;
+    [AnimateHelper transitionView:self.lblContentFirst fromAlpha:0 toAlpha:1 duration:duration*3];
+    [AnimateHelper transitionView:self.lblContentSecond fromAlpha:0 toAlpha:1 duration:duration*3];
+}
+
+- (void)layoutSubviewsDisappear
+{
+    CGFloat duration = 0.5;
+    
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.audioControlView fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint center2O = self.toneBackgroundView.center;
+    CGPoint center2N = CGPointMake(self.toneBackgroundView.centerX, -self.toneBackgroundView.height);
+    [AnimateHelper transitionLayer:self.toneBackgroundView.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.toneBackgroundView fromAlpha:1 toAlpha:0 duration:duration];
+    [AnimateHelper transitionView:self.lblContentFirst fromAlpha:1 toAlpha:0 duration:duration];
+    [AnimateHelper transitionView:self.lblContentSecond fromAlpha:1 toAlpha:0 duration:duration];
+}
+
+
+#pragma mark - 属性
+- (void)setRecord:(Record *)record
+{
+    [super setRecord:record];
+    self.lblContentFirst.text = record.phone;
+    self.lblContentSecond.text = record.phone;
+    self.audioControlView.sourceAudio = [Record pathOfAudio:record.audioName bundle:@"DoublePhone"];
+}
+
+#pragma mark - AudioControlView delegate
+- (void)startPlayAudio:(NSString *)audioPath duration:(NSTimeInterval)duration
+{
+    if (self.roopCount == 1)
+    {
+        self.toneFirstView.toneAnimateDuration = duration;
+        [self.toneFirstView setTone:self.record.tone.integerValue animated:YES];
+    }
+    else
+    {
+        self.toneSecondView.toneAnimateDuration = duration;
+        [self.toneSecondView setTone:self.record.tone.integerValue animated:YES];
+    }
+}
+
+- (void)sourceAudioPlayerDidFinishPlaying:(id)player successfully:(BOOL)flag
+{
+    if (self.roopCount >= 2) {
+        self.roopCount = 1;
+        return;
+    }
+    self.roopCount++;
+    self.audioControlView.sourceAudio = [Record pathOfAudio:self.record.audioName bundle:@"DoublePhone"];
+    [self.audioControlView playSourceAction:self.audioControlView.btnSource];
+}
+
+@end

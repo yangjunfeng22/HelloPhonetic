@@ -1,0 +1,149 @@
+//
+//  HomeViewController.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/21.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import "HomeViewController.h"
+#import "UIView+Additions.h"
+#import "AudioRecordAndPlayViewController.h"
+
+#import "LoginViewController.h"
+#import "LearnNavViewController.h"
+
+#import "AnimateHelper.h"
+
+#import <POP/POP.h>
+#import <POP/POPLayerExtras.h>
+
+
+@interface HomeViewController ()<LoginDelegate, learnNavDelegate, AudioRecordAndPlayDelegate>
+{
+    LearnNavViewController *audioNav;
+    BOOL togOn;
+}
+
+@property (nonatomic) CGFloat popAnimationProgress;
+@property (nonatomic, getter=isFirstLaunch) BOOL firstLaunch;
+
+@end
+
+@implementation HomeViewController
+
+- (void)togglePopAnimation:(BOOL)on
+{
+    POPSpringAnimation *animation = [self pop_animationForKey:@"popAnimation"];
+    
+    if (!animation)
+    {
+        animation = [POPSpringAnimation animation];
+        animation.springBounciness = 5;
+        animation.springSpeed = 10;
+        animation.property = [POPAnimatableProperty propertyWithName:@"popAnimationProgress" initializer:^(POPMutableAnimatableProperty *prop) {
+            prop.readBlock = ^(HomeViewController *obj, CGFloat values[]) {
+                values[0] = obj.popAnimationProgress;
+            };
+            prop.writeBlock = ^(HomeViewController *obj, const CGFloat values[]) {
+                obj.popAnimationProgress = values[0];
+            };
+            prop.threshold = 0.001;
+        }];
+        
+        [self pop_addAnimation:animation forKey:@"popAnimation"];
+    }
+    
+    animation.toValue = on ? @(1.0) : @(0.9);
+}
+
+- (void)setPopAnimationProgress:(CGFloat)progress {
+    _popAnimationProgress = progress;
+    
+    CGFloat transition = POPTransition(progress, 0, 1);
+    POPLayerSetScaleXY(self.btnStart.layer, CGPointMake(transition, transition));
+}
+
+// Utilities
+static inline CGFloat POPTransition(CGFloat progress, CGFloat startValue, CGFloat endValue) {
+    return startValue + (progress * (endValue - startValue));
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    if (self.firstLaunch)
+    {
+        self.firstLaunch = NO;
+        [self.audioControlView playSourceAction:nil];
+    }
+    
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.view.backgroundColor = kColorMain;
+    self.firstLaunch = YES;
+    togOn = NO;
+    
+    self.btnStart.layer.cornerRadius = self.btnStart.height * 0.05;
+    self.btnLogin.layer.cornerRadius = self.btnLogin.height * 0.05;
+    self.btnLogin.layer.borderColor = kColorFFBackground.CGColor;
+    self.btnLogin.layer.borderWidth = 2.0;
+    
+    self.borderView.layer.cornerRadius = self.borderView.height * 0.025;
+    
+    self.lblExample.text = @"你好^nǐhǎo";
+    
+    NSString *audioPath = [[NSBundle mainBundle] pathForResource:@"你好" ofType:@"mp3"];
+    self.audioControlView.backgroundColor = [UIColor clearColor];
+    self.audioControlView.delegate = self;
+    self.audioControlView.sourceAudio = audioPath;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+- (IBAction)startAction:(id)sender
+{
+    audioNav = [[LearnNavViewController alloc] init];
+    audioNav.delegate = self;
+    [self addChildViewController:audioNav];
+    audioNav.view.frame = self.view.frame;
+    [self.view addSubview:audioNav.view];
+    [audioNav didMoveToParentViewController:self];
+}
+
+- (IBAction)loginOrRegistAction:(id)sender
+{
+    LoginViewController *login = [[LoginViewController alloc] initWithNibName:@"LoginViewController" bundle:nil];
+    login.delegate = self;
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:login];
+    [self presentViewController:nav animated:YES completion:^{}];
+}
+
+
+#pragma mark - 用户登陆 delegate
+- (void)userLogined:(id)sender
+{
+    [self startAction:self.btnStart];
+}
+
+#pragma mark - 音频导航 delegate
+- (void)userLogout:(id)sender
+{
+    [audioNav removeFromParentViewController];
+    [audioNav.view removeFromSuperview];
+    audioNav = nil;
+}
+
+#pragma mark - AudioControl Delegate
+- (void)sourceAudioPlayerDidFinishPlaying:(id)player successfully:(BOOL)flag
+{
+    self.audioControlView.animateMode = ComponentsAnimateModeRecorderOnly;
+}
+
+@end

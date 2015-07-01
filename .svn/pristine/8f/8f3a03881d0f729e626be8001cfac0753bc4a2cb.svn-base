@@ -1,0 +1,32 @@
+//
+//  Record.h
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/6/3.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
+
+
+@interface Record : NSManagedObject
+
+@property (nonatomic, retain) NSString * audioName;
+@property (nonatomic, retain) NSString * chinese;
+@property (nonatomic, retain) NSNumber * learnType;
+@property (nonatomic, retain) NSString * phone;
+@property (nonatomic, retain) NSString * picName;
+@property (nonatomic, retain) NSString * pinyin;
+@property (nonatomic, retain) NSString * recordID;
+@property (nonatomic, retain) NSNumber * rightTimes;
+@property (nonatomic, retain) NSString * tone;
+@property (nonatomic, retain) NSNumber * totalTimes;
+@property (nonatomic, retain) NSString * wrongPinyin;
+@property (nonatomic, retain) NSNumber * wrongTimes;
+@property (nonatomic, retain) NSString * wrongTone;
+// 排序字段,排序的时候最好与Type一起使用。
+// 达到Type内的一个按权重排序
+@property (nonatomic, retain) NSNumber * weight;
+
+@end

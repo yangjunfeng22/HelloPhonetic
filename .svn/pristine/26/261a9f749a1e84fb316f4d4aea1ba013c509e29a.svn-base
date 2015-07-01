@@ -1,0 +1,515 @@
+//
+//  LearnNavViewController.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/25.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "LearnNavViewController.h"
+#import "UIView+Additions.h"
+#import "AboutUsViewController.h"
+#import "ReportViewController.h"
+#import "TestViewController.h"
+#import "LearnViewController.h"
+#import "ImportOperation.h"
+#import "Store.h"
+
+#import "AnimateHelper.h"
+#import "SVProgressHUD.h"
+
+#import "AppDelegate.h"
+
+@interface LearnNavViewController ()<UIScrollViewDelegate, AboutUsDelegate, LearnDelegate>
+@property (nonatomic, strong) UIView *animateView;
+
+@property (nonatomic, strong) NSOperationQueue* operationQueue;
+//@property (nonatomic, strong) Store* store;
+@property (nonatomic, strong) UIColor *selectedBackgroundColor;
+// 判断是否第一次加载当前页面，如果是，那么会有启动动画，如果不是，那么不会有启动动画。
+@property (nonatomic, getter=isFirstLaunch) BOOL firstLaunch;
+@property (nonatomic) LearnCheckPointType selectedType;
+
+@end
+
+@implementation LearnNavViewController
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    CGSize contentSize = CGSizeMake(self.checkPointScrollView.width*2, self.checkPointScrollView.height);
+    [self.checkPointScrollView setContentSize:contentSize];
+    
+    if (self.firstLaunch) {
+        self.firstLaunch = NO;
+        [self layoutSubViewsAppear];
+    }
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.view.alpha = 0;
+    [AnimateHelper scaleAnimationWithView:self.view scaleX:1.2 scaleY:1.2 duration:0 completion:nil];
+    self.firstLaunch = YES;
+    self.navBackgroundView.alpha = 0;
+    CGSize contentSize = CGSizeMake(self.checkPointScrollView.width*2, self.checkPointScrollView.height);
+    [self.checkPointScrollView setContentSize:contentSize];
+    
+    self.checkPointPageControl.numberOfPages = 2;
+    self.checkPointPageControl.currentPage = 0;
+    self.checkPointPageControl.alpha = 0;
+    
+    // 返回scrollView的上一页
+    self.btnBack.hidden = YES;
+    self.btnNext.hidden = YES;
+    self.btnNext.alpha = 0;
+    
+    self.btnAboutUs.alpha = 0;
+    self.btnReports.alpha = 0;
+    
+    CGFloat cornerRadius = 50;
+    self.btnSinglePhone.layer.cornerRadius = 45;
+    self.btnSinglePhone.alpha = 0;
+
+    self.btnDoublePhone.layer.cornerRadius = cornerRadius;
+    self.btnDoublePhone.alpha = 0;
+
+    self.btnExciseFirst.layer.cornerRadius = cornerRadius;
+    self.btnExciseFirst.alpha = 0;
+
+    self.btnExciseSecond.layer.cornerRadius = 45;
+    self.btnExciseSecond.alpha = 0;
+    
+    self.btnVowels.layer.cornerRadius = 45;
+    self.btnVowels.alpha = 0;
+
+    self.btnSyllable.layer.cornerRadius = cornerRadius;
+    self.btnSyllable.alpha = 0;
+
+    self.btnConsonants.layer.cornerRadius = cornerRadius;
+    self.btnConsonants.alpha = 0;
+
+    self.btnExcise.layer.cornerRadius = 45;
+    self.btnExcise.alpha = 0;
+    
+    NSString *fileSingle       = [[NSBundle mainBundle] pathForResource:@"singlePhone" ofType:@"txt"];
+    NSString *fileDouble       = [[NSBundle mainBundle] pathForResource:@"doublePhone" ofType:@"txt"];
+    NSString *fileExciseFirst  = [[NSBundle mainBundle] pathForResource:@"exciseFirst" ofType:@"txt"];
+    NSString *fileExciseSecond = [[NSBundle mainBundle] pathForResource:@"exciseSecond" ofType:@"txt"];
+    NSString *fileVowels       = [[NSBundle mainBundle] pathForResource:@"vowels" ofType:@"txt"];
+    NSString *fileSyllable     = [[NSBundle mainBundle] pathForResource:@"syllable" ofType:@"txt"];
+    NSString *fileConsonants   = [[NSBundle mainBundle] pathForResource:@"consonants" ofType:@"txt"];
+    NSString *fileExcise       = [[NSBundle mainBundle] pathForResource:@"excise" ofType:@"txt"];
+    
+    NSArray *arrFiles = @[fileSingle, fileDouble, fileExciseFirst, fileExciseSecond, fileVowels, fileSyllable, fileConsonants, fileExcise];
+    
+    [self importFiles:arrFiles idx:0 completion:nil];
+    
+    
+}
+
+- (void)updateViewConstraints
+{
+    [super updateViewConstraints];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)layoutSubViewsAppear
+{
+    CGFloat duration = 5;
+    [AnimateHelper scaleAnimationWithView:self.view scaleX:1 scaleY:1 duration:0.6 completion:nil];
+    [AnimateHelper transitionView:self.view fromAlpha:0 toAlpha:1 duration:0.6 delay:0];
+    [AnimateHelper transitionView:self.btnSinglePhone fromAlpha:0 toAlpha:1 duration:duration delay:0];
+    [AnimateHelper transitionView:self.btnDoublePhone fromAlpha:0 toAlpha:1 duration:duration delay:0.5];
+    [AnimateHelper transitionView:self.btnExciseFirst fromAlpha:0 toAlpha:1 duration:duration delay:1.0];
+    [AnimateHelper transitionView:self.btnExciseSecond fromAlpha:0 toAlpha:1 duration:duration delay:1.5];
+    [AnimateHelper transitionView:self.btnVowels fromAlpha:0 toAlpha:1 duration:duration delay:0.5];
+    [AnimateHelper transitionView:self.btnConsonants fromAlpha:0 toAlpha:1 duration:duration delay:1.0];
+    [AnimateHelper transitionView:self.btnSyllable fromAlpha:0 toAlpha:1 duration:duration delay:1.5];
+    [AnimateHelper transitionView:self.btnExcise fromAlpha:0 toAlpha:1 duration:duration delay:2.0];
+    
+    [AnimateHelper transitionView:self.navBackgroundView fromAlpha:0 toAlpha:1 duration:duration delay:1];
+    [AnimateHelper transitionView:self.checkPointPageControl fromAlpha:0 toAlpha:1 duration:duration*0.5 delay:1.5];
+    [AnimateHelper transitionView:self.btnAboutUs fromAlpha:0 toAlpha:1 duration:duration*0.5 delay:1.5];
+    [AnimateHelper transitionView:self.btnReports fromAlpha:0 toAlpha:1 duration:duration*0.5 delay:1.5];
+    
+    NSValue *cValue11 = [NSValue valueWithCGRect:self.btnSinglePhone.frame];
+    NSValue *cValue12 = [NSValue valueWithCGRect:self.btnExciseFirst.frame];
+    NSValue *cValue13 = [NSValue valueWithCGRect:self.btnDoublePhone.frame];
+    NSValue *cValue14 = [NSValue valueWithCGRect:self.btnExciseSecond.frame];
+    NSValue *cValue15 = [NSValue valueWithCGRect:self.btnVowels.frame];
+    NSValue *cValue16 = [NSValue valueWithCGRect:self.btnConsonants.frame];
+    NSValue *cValue17 = [NSValue valueWithCGRect:self.btnSyllable.frame];
+    NSValue *cValue18 = [NSValue valueWithCGRect:self.btnExcise.frame];
+    
+    [self.navBackgroundView startCombineRects:@[cValue11, cValue12, cValue13, cValue14, cValue15, cValue16, cValue17, cValue18]];
+}
+
+#pragma mark - Import Data
+- (void)startImport:(NSString *)filePath completion:(void (^)(BOOL finished))completion
+{
+    AppDelegate *delegate = [UIApplication sharedApplication].delegate;
+    ImportOperation* operation = [[ImportOperation alloc] initWithStore:delegate.store fileName:filePath];
+    operation.progressCallback = ^(float progress) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^
+         {
+             DLog(@"progress: %@", @(progress));
+             if (progress >= 1) {
+                 if (completion) {
+                     completion(YES);
+                 }
+             }
+         }];
+    };
+    [self.operationQueue addOperation:operation];
+}
+
+- (void)cancelImport{
+    [self.operationQueue cancelAllOperations];
+}
+
+- (void)importFiles:(NSArray *)arrFiles idx:(NSInteger)idx completion:(void (^)(BOOL finished))completion
+{
+    // 递归读取所有的文件
+    if (idx < [arrFiles count])
+    {
+        NSString *fileName = arrFiles[idx];
+        DLog(@"文件地址: %@", fileName);
+        [self startImport:fileName completion:^(BOOL finished) {
+            [self importFiles:arrFiles idx:idx+1 completion:nil];
+        }];
+    }
+}
+
+#pragma mark - Action Manager
+- (IBAction)aboutUsAction:(id)sender
+{
+    AboutUsViewController *aboutUs = [[AboutUsViewController alloc] initWithNibName:@"AboutUsViewController" bundle:nil];
+    aboutUs.delegate = self;
+    [self presentViewController:aboutUs animated:YES completion:^{}];
+}
+
+- (IBAction)showReportsAction:(id)sender
+{
+    ReportViewController *report = [[ReportViewController alloc] initWithNibName:@"ReportViewController" bundle:nil];
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:report];
+    [self presentViewController:nav animated:YES completion:^{}];
+}
+
+
+- (IBAction)nextAction:(id)sender
+{
+    CGRect visibleRect = CGRectMake(self.checkPointScrollView.width, self.checkPointScrollView.top, self.checkPointScrollView.width, self.checkPointScrollView.height);
+    [self.checkPointScrollView scrollRectToVisible:visibleRect animated:YES];
+    
+}
+
+- (IBAction)backAction:(id)sender
+{
+    CGRect visibleRect = CGRectMake(0, self.checkPointScrollView.top, self.checkPointScrollView.width, self.checkPointScrollView.height);
+    [self.checkPointScrollView scrollRectToVisible:visibleRect animated:YES];
+}
+
+-(void)scaleBack:(UIView *)view
+{
+    [AnimateHelper scaleAnimationWithView:view scaleX:1 scaleY:1 completion:^(BOOL finished) {
+        [view removeFromSuperview];
+    }];
+    
+    [AnimateHelper scaleAnimationWithView:self.backgroundView scaleX:1.0 scaleY:1.0 completion:nil];
+}
+
+- (IBAction)learnAction:(id)sender
+{
+    UIButton *button = (UIButton *)sender;
+    self.selectedBackgroundColor = button.backgroundColor;
+    CGRect rect = [self.view convertRect:button.frame fromView:self.checkPointScrollView];
+    self.animateView.frame = button.frame;
+    self.animateView.backgroundColor = self.selectedBackgroundColor;
+    self.animateView.layer.cornerRadius = rect.size.height*0.5;
+    
+    AppDelegate *delegate = [UIApplication sharedApplication].delegate;
+    LearnCheckPointType type = [self convertButtonToType:sender];
+    self.selectedType = type;
+    LearnViewController *learn = [[LearnViewController alloc] initWithNibName:nil bundle:nil learnType:type];
+    learn.animation = YES;
+    learn.delegate = self;
+    learn.store = delegate.store;
+    
+    [self addChildViewController:learn];
+    learn.view.frame = [UIScreen mainScreen].bounds;
+    [self.view addSubview:learn.view];
+    [learn didMoveToParentViewController:self];
+    
+    UIColor *color = RGB(233, 239, 242);
+    
+    [AnimateHelper scaleAnimationWithView:self.animateView scaleX:16 scaleY:16 completion:^(BOOL finished) {
+        learn.view.backgroundColor = color;
+    }];
+    [AnimateHelper transitionViewBackgroundColor:self.animateView toColor:color duration:0.8 delay:0];
+    [AnimateHelper scaleAnimationWithView:self.backgroundView scaleX:0.8 scaleY:0.8 completion:^(BOOL finished) {}];
+}
+
+
+- (LearnCheckPointType)convertButtonToType:(UIButton *)sender
+{
+    LearnCheckPointType type = LearnCheckPointTypeSinglePhone;
+    if ([sender isEqual:self.btnSinglePhone])
+    {
+        DLog(@"单音节");
+        type = LearnCheckPointTypeSinglePhone;
+    }
+    else if ([sender isEqual:self.btnDoublePhone])
+    {
+        DLog(@"双音节");
+        type = LearnCheckPointTypeDoublePhone;
+    }
+    else if ([sender isEqual:self.btnExciseFirst])
+    {
+        DLog(@"练习1");
+        type = LearnCheckPointTypeExciseFirst;
+    }
+    else if ([sender isEqual:self.btnExciseSecond])
+    {
+        DLog(@"练习2");
+        type = LearnCheckPointTypeExciseSecond;
+    }
+    else if ([sender isEqual:self.btnVowels])
+    {
+        DLog(@"元音");
+        type = LearnCheckPointTypeVowels;
+    }
+    else if ([sender isEqual:self.btnSyllable])
+    {
+        DLog(@"音节");
+        type = LearnCheckPointTypeSyllable;
+    }
+    else if ([sender isEqual:self.btnConsonants])
+    {
+        DLog(@"辅音");
+        type = LearnCheckPointTypeConsonants;
+    }
+    else if ([sender isEqual:self.btnExcise])
+    {
+        DLog(@"练习");
+        type = LearnCheckPointTypeExcise;
+    }
+    return type;
+}
+
+
+#pragma mark - ScrollView Delegate
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    [self refreshPageControl];
+    
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    //[self refreshButtonState];
+    [self refreshTitle];
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (!decelerate) {
+        //[self refreshButtonState];
+        [self refreshTitle];
+    }
+}
+
+-(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+{
+    //[self refreshButtonState];
+    [self refreshTitle];
+}
+
+#pragma mark - About Us delegate
+- (void)userLogout:(id)sender
+{
+    // 用户登出
+    if (self.delegate && [self.delegate respondsToSelector:@selector(userLogout:)])
+    {
+        [self.delegate userLogout:sender];
+    }
+}
+
+#pragma mark - Learn Delegate
+- (void)learnQuit:(LearnViewController *)learn
+{
+    // 根据不同的学习类型, 重新设置动画视图的状态
+    if (self.selectedType != learn.type)
+    {
+        self.selectedType = learn.type;
+        [self resetAnimateViewStateWithLearnType:learn.type];
+    }
+    
+    [AnimateHelper transitionViewBackgroundColor:self.animateView toColor:self.selectedBackgroundColor duration:0.6 delay:0];
+    [AnimateHelper scaleAnimationWithView:self.animateView scaleX:1 scaleY:1 completion:^(BOOL finished) {
+        
+        [learn.view removeFromSuperview];
+        [learn removeFromParentViewController];
+        [self.animateView removeFromSuperview];
+    }];
+    
+    [AnimateHelper scaleAnimationWithView:self.backgroundView scaleX:1.0 scaleY:1.0 completion:nil];
+}
+
+- (void)resetAnimateViewStateWithLearnType:(LearnCheckPointType)type
+{
+    __weak UIButton *button = self.btnSinglePhone;
+    switch (type)
+    {
+        case LearnCheckPointTypeSinglePhone:
+        {
+            self.selectedBackgroundColor = self.btnSinglePhone.backgroundColor;
+            button = self.btnSinglePhone;
+            break;
+        }
+        case LearnCheckPointTypeExciseFirst:
+        {
+            self.selectedBackgroundColor = self.btnExciseFirst.backgroundColor;
+            button = self.btnExciseFirst;
+            break;
+        }
+        case LearnCheckPointTypeDoublePhone:
+        {
+            self.selectedBackgroundColor = self.btnDoublePhone.backgroundColor;
+            button = self.btnDoublePhone;
+            break;
+        }
+        case LearnCheckPointTypeExciseSecond:
+        {
+            self.selectedBackgroundColor = self.btnExciseSecond.backgroundColor;
+            button = self.btnExciseSecond;
+            break;
+        }
+        case LearnCheckPointTypeVowels:
+        {
+            self.selectedBackgroundColor = self.btnVowels.backgroundColor;
+            button = self.btnVowels;
+            break;
+        }
+        case LearnCheckPointTypeConsonants:
+        {
+            self.selectedBackgroundColor = self.btnConsonants.backgroundColor;
+            button = self.btnConsonants;
+            break;
+        }
+        case LearnCheckPointTypeSyllable:
+        {
+            self.selectedBackgroundColor = self.btnSyllable.backgroundColor;
+            button = self.btnSyllable;
+            break;
+        }
+        case LearnCheckPointTypeExcise:
+        {
+            self.selectedBackgroundColor = self.btnExcise.backgroundColor;
+            button = self.btnExcise;
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    // 判断动画视图回来的时候是否超出了显示边界。
+    // 如果超过了显示边界，那么将ScrollView翻动到对应的页面。
+    CGFloat ox = 0;
+    if (button.right > self.checkPointScrollView.width){
+        ox = self.checkPointScrollView.width;
+    }
+    [self.checkPointScrollView scrollRectToVisible:CGRectMake(ox, 0, self.checkPointScrollView.width, self.checkPointScrollView.height) animated:NO];
+    // 制定动画视图新的中心点。
+    self.animateView.center = button.center;
+}
+
+#pragma mark - Refresh UI
+- (void)refreshPageControl
+{
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        CGFloat pageWidth = self.checkPointScrollView.frame.size.width;
+        NSInteger page = floor((self.checkPointScrollView.contentOffset.x - pageWidth/2) / pageWidth) + 1;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.checkPointPageControl.currentPage = page;
+        });
+    });
+}
+
+- (void)refreshButtonState
+{
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        CGFloat pageWidth = self.checkPointScrollView.frame.size.width;
+        NSInteger page = floor((self.checkPointScrollView.contentOffset.x - pageWidth/2) / pageWidth) + 1;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (page >= 1) {
+                self.btnBack.hidden = NO;
+                self.btnNext.hidden = YES;
+            }else{
+                self.btnBack.hidden = YES;
+                self.btnNext.hidden = NO;
+            }
+        });
+    });
+}
+
+- (void)refreshTitle
+{
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        CGFloat pageWidth = self.checkPointScrollView.frame.size.width;
+        NSInteger page = floor((self.checkPointScrollView.contentOffset.x - pageWidth/2) / pageWidth) + 1;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (page >= 1) {
+                self.lblTitle.text = @"拼音";
+            }else{
+                self.lblTitle.text = @"声调";
+            }
+        });
+    });
+}
+
+#pragma mark - 属性
+- (UIView *)animateView
+{
+    if (!_animateView.superview)
+    {
+        _animateView = [[UIView alloc] init];
+        //_animateView.backgroundColor = kColorMain;
+        //_animateView.layer.cornerRadius = 50;
+        [self.checkPointScrollView addSubview:_animateView];
+    }
+    return _animateView;
+}
+
+- (NSOperationQueue *)operationQueue
+{
+    if (!_operationQueue)
+    {
+        _operationQueue = [[NSOperationQueue alloc] init];
+    }
+    return _operationQueue;
+}
+
+//- (Store *)store
+//{
+//    if (!_store) {
+//        _store = [[Store alloc] init];
+//    }
+//    return _store;
+//}
+
+#pragma mark - Memory Manager
+- (void)dealloc
+{
+    DLOG_CMETHOD;
+}
+
+@end

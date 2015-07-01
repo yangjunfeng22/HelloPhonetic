@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="SinglePhoneCell">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xBp-i7-1hL" customClass="HSToneView">
+                        <rect key="frame" x="139" y="67" width="122" height="124"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="声调1.png" translatesAutoresizingMaskIntoConstraints="NO" id="Zfc-pP-rod">
+                                <rect key="frame" x="0.0" y="0.0" width="122" height="125"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="124" id="Bx0-8z-3PH"/>
+                            <constraint firstAttribute="width" constant="122" id="Hc9-Er-QBy"/>
+                            <constraint firstAttribute="bottom" secondItem="Zfc-pP-rod" secondAttribute="bottom" constant="-1" id="Ib3-nG-vx9"/>
+                            <constraint firstAttribute="trailing" secondItem="Zfc-pP-rod" secondAttribute="trailing" id="WEf-fn-LZx"/>
+                            <constraint firstItem="Zfc-pP-rod" firstAttribute="leading" secondItem="xBp-i7-1hL" secondAttribute="leading" id="fZO-il-P87"/>
+                            <constraint firstItem="Zfc-pP-rod" firstAttribute="top" secondItem="xBp-i7-1hL" secondAttribute="top" id="qVX-St-VQQ"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="number" keyPath="tone">
+                                <integer key="value" value="-1"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
+                    </view>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="k9T-ul-Gr5" customClass="AudioRecordAndPlayView">
+                        <rect key="frame" x="8" y="330" width="384" height="108"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="749" text="a" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EjU-ow-vEg">
+                        <rect key="frame" x="40" y="241" width="320" height="62"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <fontDescription key="fontDescription" name="STHeitiSC-Medium" family="Heiti SC" pointSize="62"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="k9T-ul-Gr5" secondAttribute="bottom" constant="62" id="1pP-dn-N5C"/>
+                <constraint firstItem="xBp-i7-1hL" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="topMargin" constant="59" id="2yi-Ov-lhe"/>
+                <constraint firstItem="k9T-ul-Gr5" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="8" id="DiT-T9-LN2"/>
+                <constraint firstItem="k9T-ul-Gr5" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="330" id="Kf7-Sz-G9X"/>
+                <constraint firstAttribute="centerX" secondItem="k9T-ul-Gr5" secondAttribute="centerX" id="LYN-ta-iTK"/>
+                <constraint firstAttribute="trailing" secondItem="k9T-ul-Gr5" secondAttribute="trailing" constant="8" id="Mqd-zn-Rr1"/>
+                <constraint firstAttribute="centerX" secondItem="EjU-ow-vEg" secondAttribute="centerX" id="O1c-bg-aM9"/>
+                <constraint firstAttribute="centerX" secondItem="xBp-i7-1hL" secondAttribute="centerX" id="aIw-ee-R5I"/>
+                <constraint firstItem="EjU-ow-vEg" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="kG0-gP-L1I"/>
+                <constraint firstAttribute="trailing" secondItem="EjU-ow-vEg" secondAttribute="trailing" constant="40" id="mbZ-yx-FB3"/>
+                <constraint firstItem="k9T-ul-Gr5" firstAttribute="top" secondItem="EjU-ow-vEg" secondAttribute="bottom" constant="27" id="sqR-9b-5yt"/>
+            </constraints>
+            <size key="customSize" width="256" height="352"/>
+            <connections>
+                <outlet property="audioControlView" destination="k9T-ul-Gr5" id="pMp-Re-VaB"/>
+                <outlet property="imgvTone" destination="Zfc-pP-rod" id="HzO-mt-vam"/>
+                <outlet property="lblPhone" destination="EjU-ow-vEg" id="kh8-P5-ouy"/>
+                <outlet property="toneView" destination="xBp-i7-1hL" id="fqX-fc-c4T"/>
+            </connections>
+            <point key="canvasLocation" x="244" y="223"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="声调1.png" width="122" height="124"/>
+    </resources>
+</document>

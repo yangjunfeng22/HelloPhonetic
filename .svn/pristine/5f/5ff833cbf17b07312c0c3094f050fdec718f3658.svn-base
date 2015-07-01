@@ -1,0 +1,18 @@
+//
+//  ImportOperation.h
+//  LiveInShanghai
+//
+//  Created by junfengyang on 15/3/18.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@class Store;
+@interface ImportOperation : NSOperation
+- (id)initWithStore:(Store *)store fileName:(NSString *)name;
+@property (nonatomic)float progress;
+@property (nonatomic, copy) void (^ progressCallback)(float);
+
+
+@end

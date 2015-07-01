@@ -1,0 +1,26 @@
+//
+//  HSToneView.h
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/18.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface HSToneView : UIView
+
+@property (nonatomic, strong) UIColor *trackTintColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIColor *toneTintColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic) NSInteger tone;
+@property (nonatomic) CGFloat indeterminateDuration UI_APPEARANCE_SELECTOR;
+@property (nonatomic) NSInteger indeterminate UI_APPEARANCE_SELECTOR;
+@property (nonatomic) CGFloat toneAnimateDuration UI_APPEARANCE_SELECTOR;
+@property (nonatomic) CGFloat toneHeight UI_APPEARANCE_SELECTOR;
+
+- (void)setTone:(NSInteger)tone animated:(BOOL)animated;
+- (void)setTone:(NSInteger)tone animated:(BOOL)animated initialDelay:(CFTimeInterval)initialDelay;
+
+- (void)clearTone;
+
+@end

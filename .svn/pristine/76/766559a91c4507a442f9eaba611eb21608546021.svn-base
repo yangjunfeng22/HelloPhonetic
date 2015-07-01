@@ -1,0 +1,825 @@
+//
+//  AudioRecordAndPlayView.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/21.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import "AudioRecordAndPlayView.h"
+#import <AVFoundation/AVFoundation.h>
+#import <iflyMSC/IFlySpeechRecognizer.h>
+#import <iflyMSC/IFlySpeechRecognizerDelegate.h>
+#import <iflyMSC/IFlySpeechConstant.h>
+#import "AudioRecord.h"
+#import "FileHelper.h"
+#import "SVProgressHUD.h"
+#import "CircleView.h"
+#import "AnimateHelper.h"
+
+/**
+ *  整个的逻辑如下：
+ *  -- 录音按钮开始的时候两边的音频及按钮的状态都要重置掉。
+ *  -- 播放录音的时候，源音频的播放要pause。
+ *  -- 播放源音频的时候，录音的播放要pause。
+ *  -- 两边音频播放的时候，录音重置。
+ */
+
+@interface AudioRecordAndPlayView ()<AVAudioPlayerDelegate, IFlySpeechRecognizerDelegate>
+{
+    IFlySpeechRecognizer *_iflySpeechRecognizer;
+}
+@property (nonatomic, strong) UIButton *btnRecorder;
+@property (nonatomic, strong) UIButton *btnPlay;
+@property (nonatomic, strong) UIImageView *imgvSoundLoading;
+@property (nonatomic, strong) AVAudioRecorder *recorder;    // 录音器
+@property (nonatomic, strong) AVAudioPlayer *player;        // 播放器
+@property (nonatomic, strong) AVAudioPlayer *sourcePlayer;  // 源的播放器
+@property (nonatomic, strong) NSTimer *timer;               // 录音时候的定时器
+@property (nonatomic, strong) NSTimer *animTimer;           // 动画的定时器
+@property (nonatomic, strong) NSDictionary *dicRecorderSettings;
+@property (nonatomic, strong) NSMutableArray *arrVolumImages; // 图片组
+@property (nonatomic, strong) NSMutableString *recordResult;
+@property (nonatomic, strong) CircleView *circleView;
+@property (nonatomic, strong) CircleView *playCircleView;
+@property (nonatomic) double lowPassResults;
+
+@property (nonatomic, copy) NSString *playName;
+
+@property (nonatomic) BOOL recording;
+
+- (void)downAction:(id)sender;
+- (void)upAction:(id)sender;
+- (void)playAction:(id)sender;
+
+@end
+
+@implementation AudioRecordAndPlayView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self)
+    {
+        self.recording = NO;
+        [self allowUseMic];
+        [self initSpeechRecognizer];
+        [self btnRecorder];
+        [self btnSource];
+        self.btnPlay.hidden = YES;
+        [self.circleView setStrokeEnd:0 animated:NO];
+        [self.playCircleView setStrokeEnd:0 animated:NO];
+    }
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super initWithCoder:aDecoder];
+    if (self)
+    {
+        
+    }
+    return self;
+}
+
+- (void)awakeFromNib
+{
+    DLOG_CMETHOD;
+    self.recording = NO;
+    [self allowUseMic];
+    [self initSpeechRecognizer];
+    [self btnRecorder];
+    [self btnSource];
+    self.btnPlay.hidden = YES;
+    [self.circleView setStrokeEnd:0 animated:NO];
+    [self.playCircleView setStrokeEnd:0 animated:NO];
+}
+
+- (BOOL)allowUseMic
+{
+    if ([[[UIDevice currentDevice] systemVersion] compare:@"7.0"] != NSOrderedAscending)
+    {
+        // 7.0第一次运行会提示，是否允许使用麦克风
+        AVAudioSession *session = [AVAudioSession sharedInstance];
+        NSError *sessionError;
+        [session setCategory:AVAudioSessionCategoryPlayAndRecord error:&sessionError];
+        if (session) {
+            [session setActive:YES error:nil];
+            return YES;
+        } else {
+            DLog(@"Error creating session:%@", [sessionError description]);
+            return NO;
+        }
+    }
+    return YES;
+}
+
+- (void)initSpeechRecognizer
+{
+    // 语音识别
+    _iflySpeechRecognizer = [IFlySpeechRecognizer sharedInstance];
+    
+}
+
+#pragma mark - 判断
+- (BOOL)canRecord
+{
+    __block BOOL bCanRecord = YES;
+    if ([[[UIDevice currentDevice] systemVersion] compare:@"7.0"] != NSOrderedAscending) {
+        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+        if ([audioSession respondsToSelector:@selector(requestRecordPermission:)]) {
+            [audioSession performSelector:@selector(requestRecordPermission:) withObject:^(BOOL granted){
+                if (granted) {
+                    bCanRecord = YES;
+                }else{
+                    bCanRecord = NO;
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [[[UIAlertView alloc] initWithTitle:nil message:@"app需要访问您的麦克风。\n请启用麦克风-设置/隐私/麦克风" delegate:nil cancelButtonTitle:@"关闭" otherButtonTitles:nil] show];
+                    });
+                }
+            }];
+        }
+    }
+    return bCanRecord;
+}
+
+#pragma mark - 按钮方法
+// 点一下录，再点一下播放的模式。
+- (void)recorderAtion:(id)sender
+{
+    self.recording = !self.recording;
+    if (self.recording)
+    {
+        [self downAction:sender];
+    }
+    else
+    {
+        [self upAction:sender];
+    }
+}
+
+
+// 按下录，松手播的模式。
+- (void)downAction:(id)sender
+{
+    // 将旧的录音记录清空
+    [self.recordResult setString:@""];
+    // 录音的时候先禁止记录的播放
+    [self stopRecordPlayer];
+    // 同时禁止source的播放
+    [self stopSourcePlayer];
+    
+    // 按下录音
+    UIImage *imgRecord = [UIImage imageNamed:@"rectangleGreen"];
+    [((UIButton *)sender) setImage:imgRecord forState:UIControlStateNormal];
+    [((UIButton *)sender) setImage:imgRecord forState:UIControlStateHighlighted];
+    if ([self canRecord] && [self allowUseMic])
+    {
+        NSError *error = nil;
+//        AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+//        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
+        // 模拟器上测试有可能崩溃
+        _recorder = [[AVAudioRecorder alloc] initWithURL:[NSURL URLWithString:self.playName] settings:self.dicRecorderSettings error:&error];
+        if (_recorder)
+        {
+            // 可以获取电平
+            _recorder.meteringEnabled = YES;
+            [_recorder prepareToRecord];
+            [_recorder record];
+            
+            [self.circleView setStrokeEnd:0 animated:NO];
+            self.circleView.alwaysShowProgress = YES;
+        
+            // 启动定时器, 显示电平值
+            _timer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(levelTimer:) userInfo:nil repeats:YES];
+        }
+        else
+        {
+            int errorCode = CFSwapInt32HostToBig((int32_t)error.code);
+            NSLog(@"Error: %@ [%4.4s]", [error localizedDescription], (char *)&errorCode);
+        }
+    }
+    
+    // 无界面识别。(开始语音识别)
+    _iflySpeechRecognizer.delegate = self;
+    [_iflySpeechRecognizer setParameter:@"16000" forKey:[IFlySpeechConstant SAMPLE_RATE]];
+    [_iflySpeechRecognizer setParameter: @"iat" forKey:[IFlySpeechConstant IFLY_DOMAIN]];
+    [_iflySpeechRecognizer setParameter:@"plain" forKey:[IFlySpeechConstant RESULT_TYPE]];
+    [_iflySpeechRecognizer startListening];
+}
+
+- (void)upAction:(id)sender
+{
+    // 图片重置
+    self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:0]];
+    
+    // 如果不是只记录模式的话，那么在结束录音之后就直接刷新按钮的状态。
+    if (self.controlMode != AudioControlModeRecordOnly) {
+        [self refreshButtonsState];
+    }
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(audioRecorderDidFinishedRecord:)]){
+        [self.delegate audioRecorderDidFinishedRecord:nil];
+    }
+    
+    [self stopAudioRecord:sender];
+}
+
+- (void)playAction:(id)sender
+{
+    // 重置录音状态
+    [self stopAudioRecord:self.btnRecorder];
+    // 先暂停录音的播放
+    [self pauseSourcePlayer];
+    
+    if (_player.isPlaying)
+    {
+        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        [((UIButton *)sender) setImage:imgPlay forState:UIControlStateNormal];
+        [((UIButton *)sender) setImage:imgPlay forState:UIControlStateHighlighted];
+        
+        [_player pause];
+        
+        self.playCircleView.alwaysShowProgress = YES;
+        CGFloat progress = _player.currentTime/_player.duration;
+        [self.playCircleView setAnimatedStrokeEnd:progress duration:_player.currentTime];
+    }
+    else
+    {
+        UIImage *imgPlay = [UIImage imageNamed:@"pause"];
+        [((UIButton *)sender) setImage:imgPlay forState:UIControlStateNormal];
+        [((UIButton *)sender) setImage:imgPlay forState:UIControlStateHighlighted];
+        
+        if (_player)
+        {
+            [_player play];
+            
+            self.playCircleView.alwaysShowProgress = NO;
+            CGFloat progress = _player.currentTime/_player.duration;
+            [self.playCircleView setAnimatedStrokeEnd:1 from:progress duration:_player.duration-_player.currentTime delay:0];
+        }
+        else
+        {
+            NSError *playerError;
+            // 播放
+            _player = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:self.playName] error:&playerError];
+            _player.delegate = self;
+            if (_player)
+            {
+                // 设置系统音量
+                AVAudioSession *session = [AVAudioSession sharedInstance];
+                [session setActive:YES error:nil];
+                [session setCategory:AVAudioSessionCategoryPlayback error:nil];
+                _player.volume = session.outputVolume;
+                
+                [_player prepareToPlay];
+                self.playCircleView.alwaysShowProgress = NO;
+                [self.playCircleView setAnimatedStrokeEnd:1 duration:_player.duration];
+                //DLog(@"音频持续时间: %@", @(_player.duration));
+                [_player play];
+            }
+            else
+            {
+                DLog(@"ERror creating player: %@", [playerError description]);
+                UIImage *imgPlay = [UIImage imageNamed:@"play"];
+                [((UIButton *)sender) setImage:imgPlay forState:UIControlStateNormal];
+                [((UIButton *)sender) setImage:imgPlay forState:UIControlStateHighlighted];
+            }
+        }
+    }
+}
+
+- (void)playSourceAction:(id)sender
+{
+    // 重置录音状态
+    [self stopAudioRecord:self.btnRecorder];
+    // 先暂停录音的播放
+    [self pauseRecordPlayer];
+    
+    if (self.btnSource.isPlaying)
+    {
+        [self.btnSource stopPlay];
+    }
+    
+    if (!self.sourceAudio)
+    {
+        self.sourceAudio = @"";
+    }
+    
+    [self.btnSource playAudio:self.sourceAudio completion:^(BOOL finished, NSError *error)
+    {
+        if (error.code == 0)
+        {
+            // 如果成功则回调.
+            if (self.delegate && [self.delegate respondsToSelector:@selector(sourceAudioPlayerDidFinishPlaying:successfully:)]){
+                [self.delegate sourceAudioPlayerDidFinishPlaying:nil successfully:YES];
+            }
+        }
+        
+    }];
+    //DLog(@"音频持续时间: %@", @(self.btnSource.playDuration));
+    if (self.delegate && [self.delegate respondsToSelector:@selector(startPlayAudio:duration:)])
+    {
+        [self.delegate startPlayAudio:self.sourceAudio duration:self.btnSource.playDuration];
+    }
+}
+
+- (void)stopAudioRecord:(id)sender
+{
+    UIButton *button = (UIButton *)sender;
+    
+    // 松开结束录音
+    // 停止监听
+    //[_iflySpeechRecognizer stopListening];
+    // 结束定时器
+    [_timer invalidate];
+    _timer = nil;
+    // 录音停止
+    [_recorder stop];
+    _recorder = nil;
+    
+//    NSError *error;
+//    NSData *audioData = [NSData dataWithContentsOfFile:self.playName options:NSDataReadingMappedIfSafe error:&error];
+//    DLog(@"错误描述: %@", error.description);
+//    _iflySpeechRecognizer.delegate = self;
+//    [_iflySpeechRecognizer setParameter:@"16000" forKey:[IFlySpeechConstant SAMPLE_RATE]];
+//    [_iflySpeechRecognizer setParameter: @"iat" forKey:[IFlySpeechConstant IFLY_DOMAIN]];
+//    [_iflySpeechRecognizer setParameter:@"plain" forKey:[IFlySpeechConstant RESULT_TYPE]];
+//    [_iflySpeechRecognizer setParameter:IFLY_AUDIO_SOURCE_STREAM forKey:[IFlySpeechConstant AUDIO_SOURCE]];
+//    [_iflySpeechRecognizer startListening];
+//    BOOL success = [_iflySpeechRecognizer writeAudio:audioData];
+//    DLog(@"写入文件成功: %@", @(success));
+    [_iflySpeechRecognizer stopListening];
+    
+    // 取消动画
+    self.circleView.alwaysShowProgress = NO;
+    [self.circleView cleanAnimation];
+    
+    UIImage *imgRecord = [UIImage imageNamed:@"rectangleBlue"];
+    [button setImage:imgRecord forState:UIControlStateNormal];
+    [button setImage:imgRecord forState:UIControlStateHighlighted];
+}
+
+- (void)resetAudioControlState
+{
+    self.recording = NO;
+    [self.recordResult setString:@""];
+    [self stopRecordPlayer];
+    [self.btnSource stopPlay];
+    [self stopAudioRecord:self.btnRecorder];
+    
+    // 如果不是只记录模式的话，那么在结束录音之后就直接刷新按钮的状态。
+    if (self.controlMode != AudioControlModeRecordOnly) {
+        [self refreshButtonsState];
+    }
+
+}
+
+#pragma mark - 播放控制的逻辑
+- (void)pauseRecordPlayer
+{
+    if (_player.isPlaying)
+    {
+        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        
+        [_btnPlay setImage:imgPlay forState:UIControlStateNormal];
+        [_btnPlay setImage:imgPlay forState:UIControlStateHighlighted];
+        
+        [_player pause];
+        
+        [self.playCircleView cleanAnimation];
+    }
+}
+
+- (void)pauseSourcePlayer
+{
+//    if (_sourcePlayer.isPlaying)
+//    {
+//        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+//        
+//        [_btnSource setImage:imgPlay forState:UIControlStateNormal];
+//        [_btnSource setImage:imgPlay forState:UIControlStateHighlighted];
+//        
+//        [_sourcePlayer pause];
+//    }
+    [self.btnSource stopPlay];
+}
+
+- (void)stopRecordPlayer
+{
+    if (_player.isPlaying)
+    {
+        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        
+        [_btnPlay setImage:imgPlay forState:UIControlStateNormal];
+        [_btnPlay setImage:imgPlay forState:UIControlStateHighlighted];
+        
+        [_player stop];
+        _player = nil;
+        
+        [self.playCircleView setStrokeEnd:0 animated:NO];
+    }
+}
+
+- (void)stopSourcePlayer
+{
+    if (_sourcePlayer.isPlaying)
+    {
+        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        
+        [_btnSource setImage:imgPlay forState:UIControlStateNormal];
+        [_btnSource setImage:imgPlay forState:UIControlStateHighlighted];
+        
+        [_sourcePlayer stop];
+        _sourcePlayer = nil;
+    }
+}
+
+#pragma mark - 定时器方法
+- (void)levelTimer:(NSTimer *)aTimer
+{
+    //call to refresh meter values
+    // 刷新平均和峰值功率,此计数是以对数刻度计量的,-160表示完全安静，0表示最大输入值
+    [_recorder updateMeters];
+    
+    const double ALPHA = 0.05;
+    double peakPowerForChannel = pow(10, (ALPHA * [_recorder peakPowerForChannel:0]));
+    _lowPassResults = ALPHA * peakPowerForChannel + (1.0 - ALPHA) * _lowPassResults;
+    
+    //DLog(@"Average input: %f Peak input: %f Low pass results: %f", [_recorder averagePowerForChannel:0], [_recorder peakPowerForChannel:0], _lowPassResults);
+
+    [self.circleView setAnimatedDefaultStartStrokeEnd:fabs(100 + [_recorder peakPowerForChannel:0]*10/16)*0.01*0.5 duration:0.5 delay:0];
+    
+    if (_lowPassResults>=0.8) {
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:7]];
+    }else if(_lowPassResults>=0.7){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:6]];
+    }else if(_lowPassResults>=0.6){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:5]];
+    }else if(_lowPassResults>=0.5){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:4]];
+    }else if(_lowPassResults>=0.4){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:3]];
+    }else if(_lowPassResults>=0.3){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:2]];
+    }else if(_lowPassResults>=0.2){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:1]];
+    }else if(_lowPassResults>=0.1){
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:0]];
+    }else{
+        self.imgvSoundLoading.image = [UIImage imageNamed:[self.arrVolumImages objectAtIndex:0]];
+    }
+}
+
+- (void)animateComponent:(NSTimer *)aTimer
+{
+    [AnimateHelper popUpAnimationWithView:self.btnRecorder];
+}
+
+#pragma mark - AVAudioPlayerDelegate
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag
+{
+    if (player == _player)
+    {
+        _player = nil;
+        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        [self.btnPlay setImage:imgPlay forState:UIControlStateNormal];
+        [self.btnPlay setImage:imgPlay forState:UIControlStateHighlighted];
+    }
+    else
+    {
+//        _sourcePlayer = nil;
+//        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+//        [self.btnSource setImage:imgPlay forState:UIControlStateNormal];
+//        [self.btnSource setImage:imgPlay forState:UIControlStateHighlighted];
+//        
+//        if (self.delegate && [self.delegate respondsToSelector:@selector(sourceAudioPlayerDidFinishPlaying:successfully:)]){
+//            [self.delegate sourceAudioPlayerDidFinishPlaying:nil successfully:YES];
+//        }
+    }
+}
+
+- (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error
+{
+    
+}
+
+- (void)audioPlayerEndInterruption:(AVAudioPlayer *)player withOptions:(NSUInteger)flags
+{
+    
+}
+
+#pragma mark - IFlySpeechRecognizerDelegate
+- (void)onResults:(NSArray *)results isLast:(BOOL)isLast
+{
+    if (results && !isLast)
+    {
+        //DLog(@"识别结束之后的结果: results: %@", results);
+        NSDictionary *dic = [results objectAtIndex:0];
+        //DLog(@"识别出来的字符: %@", dic);
+        for (NSString *key in dic)
+        {
+            [self.recordResult appendFormat:@"%@",key];
+        }
+    }
+    else if (isLast)
+    {
+        if (self.recording)
+        {
+            // 如果用户一直在录音当中，那么是不允许自动结束识别的。
+            // 即必须要一直处于识别状态。
+            // 只有等用户手动按下按钮之后才算结束了录音及识别。
+            [_iflySpeechRecognizer startListening];
+            return;
+        }
+        
+        AudioRecord *record = [[AudioRecord alloc] init];
+        NSMutableString *tone = [[NSMutableString alloc] initWithCapacity:2];
+        
+        NSString *pinyin;
+        NSString *phone;
+        
+        //*************************** 解析出拼音及声调 ******************************
+        CFStringRef strRef = (__bridge CFStringRef)self.recordResult;
+        CFMutableStringRef string = CFStringCreateMutableCopy(NULL, 0, strRef);
+        CFStringTransform(string, NULL, kCFStringTransformMandarinLatin, NO);
+        pinyin = [((__bridge NSString *)string) copy];
+        CFStringTransform(string, NULL, kCFStringTransformStripDiacritics, NO);
+        phone = [((__bridge NSString *)string) copy];
+        //*************************** 解析出拼音声调 ******************************
+        
+        //*************************** 解析出声调的调值 ******************************
+        CFMutableStringRef toneString = CFStringCreateMutableCopy(NULL, 0, strRef);
+        CFStringTransform(toneString, NULL, kCFStringTransformMandarinLatin, NO);
+        NSArray *arrStr = (__bridge NSArray *)CFStringCreateArrayBySeparatingStrings(NULL, toneString, CFSTR(" "));
+        //DLog(@"数组: %@, 音调数组", arrStr);
+        for (NSString *subStr in arrStr)
+        {
+            CFMutableStringRef sTone = CFStringCreateMutableCopy(NULL, 0, (__bridge CFStringRef)subStr);
+            CFStringTransform(sTone, NULL, kCFStringTransformToUnicodeName, NO);
+            CFRange range1 = CFStringFind(sTone, CFSTR("MACRON"), kCFCompareCaseInsensitive);
+            CFRange range2 = CFStringFind(sTone, CFSTR("ACUTE"), kCFCompareCaseInsensitive);
+            CFRange range3 = CFStringFind(sTone, CFSTR("CARON"), kCFCompareCaseInsensitive);
+            CFRange range4 = CFStringFind(sTone, CFSTR("GRAVE"), kCFCompareCaseInsensitive);
+            //DLog(@"解析之后的声调: %@", sTone);
+            if (range1.length > 0) {
+                [tone appendFormat:@"1|"];
+            }
+            
+            if (range2.length > 0) {
+                [tone appendFormat:@"2|"];
+            }
+            
+            if (range3.length > 0) {
+                [tone appendFormat:@"3|"];
+            }
+            
+            if (range4.length > 0) {
+                [tone appendFormat:@"4|"];
+            }
+        }
+        //DLog(@"解析之后的拼音 %@, 声调: %@", toneString, tone);
+        
+        //*************************** 解析出声调的调值 ******************************
+        //DLog(@"格式化之后的字符串: %@", [result substringToIndex:result.length-1]);
+        record.chinese = [self.recordResult copy];
+        record.phone = [[phone stringByReplacingOccurrencesOfString:@" " withString:@"|" options:NSCaseInsensitiveSearch range:NSMakeRange(0, phone.length)] copy];
+        record.pinyin = [[pinyin stringByReplacingOccurrencesOfString:@" " withString:@"|" options:NSCaseInsensitiveSearch range:NSMakeRange(0, phone.length)] copy];
+        record.tone = tone.length > 0 ? [[tone substringToIndex:tone.length-1] copy]:@"";
+        
+        BOOL success = self.recordResult.length > 0;
+        if (success)
+        {
+            [self refreshButtonsState];
+        }
+        
+        [self.recordResult setString:@""];
+        
+        // 数据回调
+        if (self.delegate && [self.delegate respondsToSelector:@selector(audioRecorderDidFinishedAnalysisResult:successuflly:)])
+        {
+            [self.delegate audioRecorderDidFinishedAnalysisResult:record successuflly:success];
+        }
+    }
+}
+
+- (void)onError:(IFlySpeechError *)errorCode
+{
+    //DLog(@"录音结束: %@, %@", [errorCode errorDesc], @(errorCode.errorCode));
+    // 重置录音按钮的状态
+    //self.recording = NO;
+    //[self upAction:self.btnRecorder];
+    if (errorCode.errorCode != 0)
+    {
+        // 网络连接超时
+        [SVProgressHUD showErrorWithStatus:errorCode.errorDesc];
+    }
+}
+
+#pragma mark - Layout
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    
+    if (self.controlMode == AudioControlModeSourceOnly)
+    {
+        self.btnSource.center = CGPointMake(self.bounds.size.width*0.5, self.bounds.size.height*0.5);
+    }
+    else
+    {
+        self.btnRecorder.center = CGPointMake(self.bounds.size.width*0.5, self.bounds.size.height*0.5);
+        self.btnPlay.center     = CGPointMake(self.bounds.size.width*0.75, self.bounds.size.height*0.5);
+        self.btnSource.center   = CGPointMake(self.bounds.size.width*0.25, self.bounds.size.height*0.5);
+    }
+}
+
+#pragma mark - 刷新界面
+- (void)refreshButtonsState
+{
+    self.btnRecorder.hidden = NO;
+    self.btnPlay.hidden = NO;
+    self.btnSource.hidden = NO;
+}
+
+#pragma mark - 属性
+- (UIButton *)btnRecorder
+{
+    if (!_btnRecorder)
+    {
+        UIImage *imgRecord = [UIImage imageNamed:@"rectangleBlue"];
+        CGRect frame = CGRectMake(0, 0, 80, 80);
+        _btnRecorder = [[UIButton alloc] initWithFrame:frame];
+        _btnRecorder.layer.cornerRadius = 40;
+        _btnRecorder.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        _btnRecorder.backgroundColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:1];
+        [_btnRecorder setImage:imgRecord forState:UIControlStateNormal];
+        [_btnRecorder setImage:imgRecord forState:UIControlStateHighlighted];
+        [_btnRecorder addTarget:self action:@selector(recorderAtion:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_btnRecorder];
+    }
+    return _btnRecorder;
+}
+
+- (UIButton *)btnPlay
+{
+    if (!_btnPlay)
+    {
+        UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        CGRect frame = CGRectMake(0, 0, 60, 60);
+        _btnPlay = [[UIButton alloc] initWithFrame:frame];
+        _btnPlay.center     = CGPointMake(self.bounds.size.width*0.75, self.bounds.size.height*0.5);
+        _btnPlay.layer.cornerRadius = 30;
+        //_btnPlay.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        _btnPlay.backgroundColor = kColorFFBackground;//[UIColor grayColor];
+        [_btnPlay setImage:imgPlay forState:UIControlStateNormal];
+        [_btnPlay setImage:imgPlay forState:UIControlStateHighlighted];
+        [_btnPlay addTarget:self action:@selector(playAction:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_btnPlay];
+    }
+    return _btnPlay;
+}
+
+- (HSAudioPlayerButton *)btnSource
+{
+    if (!_btnSource) {
+        //UIImage *imgPlay = [UIImage imageNamed:@"play"];
+        CGRect frame = CGRectMake(0, 0, 60, 60);
+        _btnSource = [[HSAudioPlayerButton alloc] initWithFrame:frame buttonType:buttonAudioPlayType buttonStyle:audioButtonRoundedStyle];
+        _btnSource.roundBackgroundColor = kColorFFBackground;
+        //_btnSource.backgroundColor = kColorFFBackground;
+        //_btnSource.layer.cornerRadius = 30;
+        //_btnSource.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        //_btnSource.backgroundColor = [UIColor grayColor];
+        //[_btnSource setImage:imgPlay forState:UIControlStateNormal];
+        //[_btnSource setImage:imgPlay forState:UIControlStateHighlighted];
+        [_btnSource addTarget:self action:@selector(playSourceAction:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_btnSource];
+    }
+    return _btnSource;
+}
+
+- (UIImageView *)imgvSoundLoading
+{
+    if (!_imgvSoundLoading) {
+        _imgvSoundLoading = [[UIImageView alloc] initWithFrame:CGRectZero];
+        [self addSubview:_imgvSoundLoading];
+    }
+    return _imgvSoundLoading;
+}
+
+- (NSDictionary *)dicRecorderSettings
+{
+    if (!_dicRecorderSettings) {// 录音设置
+        _dicRecorderSettings = @{AVFormatIDKey:@(kAudioFormatMPEG4AAC), AVSampleRateKey:@(16000.0), AVNumberOfChannelsKey:@(2), AVLinearPCMBitDepthKey:@(16), AVLinearPCMIsBigEndianKey:@(NO), AVLinearPCMIsFloatKey:@(NO), AVEncoderAudioQualityKey:@(AVAudioQualityMax)};
+    }
+    return _dicRecorderSettings;
+}
+
+- (NSMutableArray *)arrVolumImages
+{
+    if (!_arrVolumImages) {
+        // 音量图片数组
+        _arrVolumImages = [[NSMutableArray alloc] initWithObjects: @"recordingSignal001", @"recordingSignal002", @"recordingSignal003", @"recordingSignal004", @"recordingSignal005", @"recordingSignal006", @"recordingSignal007", @"recordingSignal008", nil];
+    }
+    return _arrVolumImages;
+}
+
+- (NSString *)playName
+{
+    if (!_playName) {
+        NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        _playName = [NSString stringWithFormat:@"%@/play.aac", docDir];
+    }
+//    DLog(@"录制后的音频: %@", _playName);
+    return _playName;
+}
+
+- (NSMutableString *)recordResult
+{
+    if (!_recordResult) {
+        _recordResult = [[NSMutableString alloc] initWithCapacity:2];
+    }
+    return _recordResult;
+}
+
+- (CircleView *)circleView
+{
+    if (!_circleView)
+    {
+        _circleView = [[CircleView alloc] initWithFrame:self.btnRecorder.bounds];
+        _circleView.strokeColor = kColorLightGreen;
+        _circleView.lineWidth = 6;
+        _circleView.backgroundCircleColor = kColorCirclBackground;
+        _circleView.userInteractionEnabled = NO;
+        [self.btnRecorder addSubview:_circleView];
+        
+    }
+    return _circleView;
+}
+
+- (CircleView *)playCircleView
+{
+    if (!_playCircleView)
+    {
+        _playCircleView = [[CircleView alloc] initWithFrame:self.btnPlay.bounds];
+        _playCircleView.strokeColor = kColorMain;
+        _playCircleView.lineWidth = 6;
+        _playCircleView.backgroundCircleColor = kColorCirclBackground;
+        _playCircleView.userInteractionEnabled = NO;
+        [self.btnPlay addSubview:_playCircleView];
+        
+    }
+    return _playCircleView;
+}
+
+- (NSTimer *)animTimer
+{
+    if (!_animTimer) {
+        _animTimer = [NSTimer scheduledTimerWithTimeInterval:3 target:self selector:@selector(animateComponent:) userInfo:nil repeats:YES];
+    }
+    return _animTimer;
+}
+
+
+- (void)setControlMode:(AudioControlMode)controlMode
+{
+    _controlMode = controlMode;
+    if (controlMode == AudioControlModeSourceOnly)
+    {
+        self.btnRecorder.hidden = YES;
+        self.btnPlay.hidden = YES;
+        self.btnSource.hidden = NO;
+        self.btnSource.bounds = CGRectMake(0, 0, 60, 60);
+        self.btnSource.layer.cornerRadius = self.btnSource.bounds.size.height*0.5;
+    }
+    else if (controlMode == AudioControlModeRecordOnly)
+    {
+        self.btnSource.hidden = YES;
+        self.btnPlay.hidden = YES;
+        self.btnRecorder.hidden = NO;
+    }
+    else
+    {
+        self.btnSource.hidden = NO;
+        self.btnPlay.hidden = YES;
+        self.btnRecorder.hidden = NO;
+    }
+}
+
+- (void)setAnimateMode:(ComponentsAnimateMode)animateMode
+{
+    _animateMode = animateMode;
+    if (animateMode == ComponentsAnimateModeRecorderOnly)
+    {
+
+    }
+}
+
+#pragma mark - Memory Manager
+- (void)dealloc
+{
+    
+}
+
+@end

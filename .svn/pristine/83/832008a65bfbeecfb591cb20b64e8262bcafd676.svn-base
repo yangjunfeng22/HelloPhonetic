@@ -1,0 +1,46 @@
+//
+//  ToneReportCell.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/6/10.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "ToneReportCell.h"
+#import "constants.h"
+#import "UIView+Additions.h"
+
+@implementation ToneReportCell
+
+- (void)awakeFromNib
+{
+    self.backgroundColor = self.superview.backgroundColor;
+    self.selectionStyle = UITableViewCellSelectionStyleNone;
+    
+    self.lblTitle.backgroundColor = self.backgroundColor;
+    self.lblTitle.textAlignment = NSTextAlignmentCenter;
+    self.progressView.progressBackgroundColor =  RGB(233, 239, 242);
+    self.progressView.showText = @YES;
+    self.progressView.textColor = RGB(254, 252, 252);
+    self.progressView.textFont = [UIFont systemFontOfSize:14];
+    self.progressView.backgroundColor =  RGB(233, 239, 242);
+    self.progressView.type = LDProgressSolid;
+//    self.progressView.animationDuration = 0.6f;
+//    self.progressView.progressType = HSChildrenLearnProgressTypeLiner;
+    
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    self.progressView.progress = 0;
+//    [self.progressView setCurrent:0 animated:NO];
+}
+
+@end

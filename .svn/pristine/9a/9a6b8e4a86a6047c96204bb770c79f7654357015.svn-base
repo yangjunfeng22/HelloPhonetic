@@ -1,0 +1,477 @@
+//
+//  HSToneView.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/18.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import "HSToneView.h"
+#import <QuartzCore/QuartzCore.h>
+#import <POP.h>
+
+#define kToneHeight 14
+
+@interface HSToneLayer : CALayer
+
+@property (nonatomic, strong) UIColor *trackTintColor;
+@property (nonatomic, strong) UIColor *toneTintColor;
+@property (nonatomic) NSInteger tone;
+@property (nonatomic) CGFloat toneHeight;
+@property (nonatomic) CGFloat progress;
+@property (nonatomic) CGFloat oProgress;
+
+
+@end
+
+@implementation HSToneLayer
+
+@dynamic trackTintColor;
+@dynamic toneTintColor;
+@dynamic tone;
+
++ (BOOL)needsDisplayForKey:(NSString *)key
+{
+    if ([key isEqualToString:@"progress"]) {
+        return YES;
+    } else {
+        return [super needsDisplayForKey:key];
+    }
+}
+
+- (void)setProgress:(CGFloat)progress
+{
+    _progress = progress;
+    [self setNeedsDisplay];
+}
+
+- (CGFloat)toneHeight
+{
+    if (_toneHeight <= 0) {
+        _toneHeight = kToneHeight;
+    }
+    return _toneHeight;
+}
+
+- (void)drawInContext:(CGContextRef)ctx
+{
+    //[super drawInContext:ctx];
+
+    switch (self.tone)
+    {
+        case 1:
+            [self drawLevelToneInContext:ctx];
+            break;
+        case 2:
+            [self drawRisingToneInContext:ctx];
+            break;
+        case 3:
+            [self drawThirdToneInContext:ctx];
+            break;
+        case 4:
+            [self drawFallingToneInContext:ctx];
+            break;
+            
+        default:
+            [self clearToneInContext:ctx];
+            break;
+    }
+}
+
+// 阴平(1声)
+- (void)drawLevelToneInContext:(CGContextRef)ctx
+{
+    CGRect rect = self.bounds;
+    
+    CGFloat totalWidth = rect.size.width * 0.8;
+    CGRect bFrame = CGRectMake(rect.size.width * 0.1, 8, totalWidth, self.toneHeight);
+    CGContextSetFillColorWithColor(ctx, self.trackTintColor.CGColor);
+    CGMutablePathRef trackPath = CGPathCreateMutable();
+    CGPathAddRoundedRect(trackPath, NULL, bFrame, self.toneHeight*0.5, self.toneHeight*0.5);
+    CGPathCloseSubpath(trackPath);
+    CGContextAddPath(ctx, trackPath);
+    CGContextFillPath(ctx);
+    CGPathRelease(trackPath);
+    
+    CGFloat progress = MIN(self.progress, 1.0f - FLT_EPSILON);
+    
+    CGRect frame = CGRectMake(totalWidth*self.oProgress+rect.size.width * 0.1, 8, totalWidth*(progress-self.oProgress), self.toneHeight);
+    CGFloat cornerW = CGRectGetWidth(frame) > self.toneHeight ? self.toneHeight*0.5:CGRectGetWidth(frame)*0.5;
+    
+    CGContextSetFillColorWithColor(ctx, self.toneTintColor.CGColor);
+    CGMutablePathRef tonePath = CGPathCreateMutable();
+    CGPathAddRoundedRect(tonePath, NULL, frame, cornerW, self.toneHeight*0.5);
+    CGPathCloseSubpath(tonePath);
+    CGContextAddPath(ctx, tonePath);
+    CGContextFillPath(ctx);
+    CGPathRelease(tonePath);
+    
+    CGContextFillPath(ctx);
+    
+    self.oProgress = self.progress;
+}
+
+// 阳平(2声)
+- (void)drawRisingToneInContext:(CGContextRef)ctx
+{
+    CGRect rect = self.bounds;
+    CGFloat totalWidth = rect.size.width * 0.8;
+    
+    CGFloat progress = MIN(self.progress, 1.0f - FLT_EPSILON);
+    
+    CGRect frame = CGRectMake(totalWidth*self.oProgress-totalWidth*0.5, -self.toneHeight*0.5, totalWidth * (progress-self.oProgress), self.toneHeight);
+    
+    /*************************** 转换坐标系 *****************************/
+    CGContextSaveGState(ctx);
+    CGContextTranslateCTM(ctx, rect.origin.x, rect.origin.y);//4
+    CGContextTranslateCTM(ctx, rect.size.width*0.5, rect.size.height*0.5);//3
+    CGContextScaleCTM(ctx, 1.0, -1.0);//2
+    /*************************** 转换坐标系 *****************************/
+    
+    // 音调条的背景
+    CGRect bFrame = CGRectMake(-totalWidth*0.5, -self.toneHeight*0.5, totalWidth, self.toneHeight);
+    CGContextSetFillColorWithColor(ctx, self.trackTintColor.CGColor);
+    CGMutablePathRef trackPath = CGPathCreateMutable();
+    CGAffineTransform m = CGAffineTransformMakeRotation(M_PI_4*0.5);
+    CGPathAddRoundedRect(trackPath, &m, bFrame, self.toneHeight*0.5, self.toneHeight*0.5);
+    CGPathCloseSubpath(trackPath);
+    CGContextAddPath(ctx, trackPath);
+    CGContextFillPath(ctx);
+    CGPathRelease(trackPath);
+    
+    // 音调条
+    CGFloat cornerW = CGRectGetWidth(frame) > self.toneHeight ? self.toneHeight*0.5:CGRectGetWidth(frame)*0.5;
+    CGContextSetFillColorWithColor(ctx, self.toneTintColor.CGColor);
+    CGMutablePathRef tonePath = CGPathCreateMutable();
+    CGAffineTransform tm = CGAffineTransformMakeRotation(M_PI_4*0.5);
+    CGPathAddRoundedRect(tonePath, &tm, frame, cornerW, self.toneHeight*0.5);
+    CGPathCloseSubpath(tonePath);
+    CGContextAddPath(ctx, tonePath);
+    CGContextFillPath(ctx);
+    CGPathRelease(tonePath);
+    
+    CGContextFillPath(ctx);
+    
+    
+    CGContextRestoreGState(ctx);
+    
+    self.oProgress = self.progress;
+}
+
+// 上声(3声)
+- (void)drawThirdToneInContext:(CGContextRef)ctx
+{
+    CGRect rect = self.bounds;
+    CGFloat totalWidth = rect.size.width * 0.8;
+    CGFloat progress = MIN(self.progress, 1.0f - FLT_EPSILON);
+    CGFloat cornerFactor = -1;
+    /*************************** 转换坐标系 *****************************/
+    CGContextSaveGState(ctx);
+    CGContextTranslateCTM(ctx, rect.origin.x, rect.origin.y);//4
+    CGContextTranslateCTM(ctx, rect.size.width*0.5, rect.size.height*0.5);//3
+    CGContextScaleCTM(ctx, 1.0, -1.0);//2
+    /*************************** 转换坐标系 *****************************/
+    
+    CGFloat s = fabs(totalWidth*0.5 / cos(M_PI_4*0.5));
+    CGFloat toneWidth = fabs(s * (progress-self.oProgress)*2);
+    // 0.5*totalWidth表示每截只有一半
+    CGRect frame1 = CGRectMake(-totalWidth*0.5, -self.toneHeight*0.5, toneWidth, self.toneHeight);
+    // 上面那一步画完之后，要将向下的条直接加上。
+    //CGRect frame0 = CGRectMake(-totalWidth*0.5, -self.toneHeight*0.5, s+7, self.toneHeight);
+    // 音调条的背景
+    // 4声的方向
+    CGRect bf1 = CGRectMake(-totalWidth*0.5, -self.toneHeight*0.5, s+cornerFactor, self.toneHeight);
+    CGRect bf2 = CGRectMake(totalWidth*0.5-s-cornerFactor, -self.toneHeight*0.5, s+cornerFactor, self.toneHeight);
+    CGAffineTransform t1 = CGAffineTransformMakeRotation(-M_PI_4*0.5);
+    CGAffineTransform t2 = CGAffineTransformMakeRotation(M_PI_4*0.5);
+    
+    CGContextSetFillColorWithColor(ctx, self.trackTintColor.CGColor);
+    CGMutablePathRef trackPath = CGPathCreateMutable();
+    CGPathAddRoundedRect(trackPath, &t1, bf1, self.toneHeight*0.5, self.toneHeight*0.5);
+    CGPathAddRoundedRect(trackPath, &t2, bf2, self.toneHeight*0.5, self.toneHeight*0.5);
+    CGPathCloseSubpath(trackPath);
+    CGContextAddPath(ctx, trackPath);
+    CGContextFillPath(ctx);
+    CGPathRelease(trackPath);
+    
+    // 音调条
+    CGContextSetFillColorWithColor(ctx, self.toneTintColor.CGColor);
+    CGMutablePathRef tonePath = CGPathCreateMutable();
+    if (frame1.origin.x + frame1.size.width <= 0)
+    {
+        // 先画向下的动画
+        CGFloat cornerW = CGRectGetWidth(frame1) > self.toneHeight ? self.toneHeight*0.5:CGRectGetWidth(frame1)*0.5;
+        CGAffineTransform tm1 = CGAffineTransformMakeRotation(-M_PI_4*0.5);
+        CGPathAddRoundedRect(tonePath, &tm1, frame1, cornerW, self.toneHeight*0.5);
+    }
+    else
+    {
+        // 上面那一步画完之后，要将向下的条直接加上。
+        CGRect frame3 = CGRectMake(-totalWidth*0.5, -self.toneHeight*0.5, s+cornerFactor, self.toneHeight);
+        CGAffineTransform tm1 = CGAffineTransformMakeRotation(-M_PI_4*0.5);
+        CGPathAddRoundedRect(tonePath, &tm1, frame3, self.toneHeight*0.5, self.toneHeight*0.5);
+        
+        // 画向上的图
+        CGRect frame2 = CGRectMake(totalWidth*0.5-s-cornerFactor + s*self.oProgress, -self.toneHeight*0.5, s * (progress-self.oProgress)+cornerFactor, self.toneHeight);
+        CGFloat cornerW = CGRectGetWidth(frame2) > self.toneHeight ? self.toneHeight*0.5:CGRectGetWidth(frame2)*0.5;
+        CGAffineTransform tm2 = CGAffineTransformMakeRotation(M_PI_4*0.5);
+        CGPathAddRoundedRect(tonePath, &tm2, frame2, cornerW, self.toneHeight*0.5);
+        
+    }
+    CGPathCloseSubpath(tonePath);
+    CGContextAddPath(ctx, tonePath);
+    CGContextFillPath(ctx);
+    CGPathRelease(tonePath);
+    
+    CGContextFillPath(ctx);
+    
+    CGContextRestoreGState(ctx);
+    
+    self.oProgress = self.progress;
+}
+
+// 去声(4声)
+- (void)drawFallingToneInContext:(CGContextRef)ctx
+{
+    CGRect rect = self.bounds;
+    CGFloat totalWidth = rect.size.width * 0.8;
+    CGFloat progress = MIN(self.progress, 1.0f - FLT_EPSILON);
+    CGRect frame = CGRectMake(totalWidth*self.oProgress-totalWidth*0.5, -self.toneHeight*0.5, totalWidth * (progress-self.oProgress), self.toneHeight);
+    
+    /*************************** 转换坐标系 *****************************/
+    CGContextSaveGState(ctx);
+    CGContextTranslateCTM(ctx, rect.origin.x, rect.origin.y);//4
+    CGContextTranslateCTM(ctx, rect.size.width*0.5, rect.size.height*0.5);//3
+    CGContextScaleCTM(ctx, 1.0, -1.0);//2
+    /*************************** 转换坐标系 *****************************/
+    
+    // 音调条的背景
+    CGRect bFrame = CGRectMake(-totalWidth*0.5, -self.toneHeight*0.5, totalWidth, self.toneHeight);
+    CGContextSetFillColorWithColor(ctx, self.trackTintColor.CGColor);
+    CGMutablePathRef trackPath = CGPathCreateMutable();
+    CGAffineTransform m = CGAffineTransformMakeRotation(-M_PI_4*0.5);
+    CGPathAddRoundedRect(trackPath, &m, bFrame, self.toneHeight*0.5, self.toneHeight*0.5);
+    CGPathCloseSubpath(trackPath);
+    CGContextAddPath(ctx, trackPath);
+    CGContextFillPath(ctx);
+    CGPathRelease(trackPath);
+    
+    // 音调条
+    CGFloat cornerW = CGRectGetWidth(frame) > self.toneHeight ? self.toneHeight*0.5:CGRectGetWidth(frame)*0.5;
+    CGContextSetFillColorWithColor(ctx, self.toneTintColor.CGColor);
+    CGMutablePathRef tonePath = CGPathCreateMutable();
+    CGAffineTransform tm = CGAffineTransformMakeRotation(-M_PI_4*0.5);
+    CGPathAddRoundedRect(tonePath, &tm, frame, cornerW, self.toneHeight*0.5);
+    CGPathCloseSubpath(tonePath);
+    CGContextAddPath(ctx, tonePath);
+    CGContextFillPath(ctx);
+    CGPathRelease(tonePath);
+    
+    CGContextFillPath(ctx);
+    
+    CGContextRestoreGState(ctx);
+    
+    self.oProgress = self.progress;
+}
+
+- (void)clearToneInContext:(CGContextRef)ctx
+{
+    self.oProgress = 0;
+    CGRect rect = self.bounds;
+    CGContextClearRect(ctx, rect);
+    CGContextFlush(ctx);
+}
+
+@end
+
+@implementation HSToneView
+
++ (void)initialize
+{
+    if (self == [HSToneView class])
+    {
+        HSToneView *toneViewAppearance = [HSToneView appearance];
+        [toneViewAppearance setTrackTintColor:[UIColor colorWithRed:0.9 green:0.9 blue:0.9 alpha:1.0]/*[[UIColor whiteColor] colorWithAlphaComponent:0.3]*/];
+        [toneViewAppearance setToneTintColor:[UIColor whiteColor]];
+        [toneViewAppearance setToneHeight:kToneHeight];
+        [toneViewAppearance setBackgroundColor:[UIColor clearColor]];
+        
+        [toneViewAppearance setIndeterminateDuration:2.0f];
+        [toneViewAppearance setIndeterminate:NO];
+        
+        [toneViewAppearance setToneAnimateDuration:1.0];
+    }
+}
+
++ (Class)layerClass
+{
+    return [HSToneLayer class];
+}
+
+- (HSToneLayer *)toneLayer
+{
+    return (HSToneLayer *)self.layer;
+}
+
+- (instancetype)init
+{
+    self = [super initWithFrame:CGRectMake(0, 0, 40, 40)];
+    if (self) {
+        
+    }
+    return self;
+}
+
+- (void)didMoveToWindow
+{
+    CGFloat windowContentsScale = self.window.screen.scale;
+    self.toneLayer.contentsScale = windowContentsScale;
+    [self.toneLayer setNeedsDisplay];
+}
+
+- (void)clearTone
+{
+    // 重置的时候必须将这几个重新设置
+    [self toneLayer].tone = 0;
+    [self toneLayer].oProgress = 0;
+    [self toneLayer].progress = 0;
+}
+
+- (NSInteger)tone
+{
+    return self.toneLayer.tone;
+}
+
+- (void)setTone:(NSInteger)tone
+{
+    [self setTone:tone animated:NO];
+}
+
+- (void)setTone:(NSInteger)tone animated:(BOOL)animated
+{
+    [self setTone:tone animated:animated initialDelay:0.0];
+}
+
+- (void)setTone:(NSInteger)tone animated:(BOOL)animated initialDelay:(CFTimeInterval)initialDelay
+{
+    self.toneLayer.tone = tone;
+    // 反复显示的时候需要先将进度置零
+    self.toneLayer.progress = 0;
+    
+    if (animated)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.toneLayer pop_removeAnimationForKey:@"toneAnimation"];
+            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"progress"];
+            animation.duration = self.toneAnimateDuration;
+            animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            animation.fillMode = kCAFillModeForwards;
+            animation.fromValue = [NSNumber numberWithFloat:0];
+            animation.toValue = [NSNumber numberWithFloat:1];
+            animation.beginTime = CACurrentMediaTime() + initialDelay;
+            animation.delegate = self;
+            [self.toneLayer addAnimation:animation forKey:@"toneAnimation"];
+        });
+        
+        /*
+        POPBasicAnimation *anim = [POPBasicAnimation animation];
+        anim.duration = self.toneAnimateDuration;
+        anim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        anim.beginTime = CACurrentMediaTime()+initialDelay;
+        anim.removedOnCompletion = NO;
+        POPAnimatableProperty * prop = [POPAnimatableProperty propertyWithName:@"progress" initializer:^(POPMutableAnimatableProperty *prop) {
+            // read value
+            prop.readBlock = ^(id obj, CGFloat values[]) {
+                values[0] = [[obj description] floatValue];
+            };
+            // write value
+            prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                [(HSToneLayer *)obj setProgress:values[0]];
+            };
+            // dynamics threshold
+            prop.threshold = 0.01;
+        }];
+        
+        anim.property = prop;
+        anim.fromValue = @(0);
+        anim.toValue = @(1);
+        anim.completionBlock = ^(POPAnimation *anim, BOOL finished){
+            //self.toneLayer.tone = tone;
+            self.toneLayer.progress = 1;
+        };
+        [self.toneLayer pop_addAnimation:anim forKey:@"animate"];
+         */
+        
+    } else {
+        [self.toneLayer setNeedsDisplay];
+        self.toneLayer.progress = 1;
+    }
+}
+
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+{
+    NSNumber *pinnedProgressNumber = [anim valueForKey:@"toValue"];
+    self.toneLayer.progress = [pinnedProgressNumber floatValue];
+}
+
+#pragma mark - UIAppearance methods
+- (UIColor *)trackTintColor
+{
+    return self.toneLayer.trackTintColor;
+}
+
+- (void)setTrackTintColor:(UIColor *)trackTintColor
+{
+    self.toneLayer.trackTintColor = trackTintColor;
+    [[self toneLayer] setNeedsDisplay];
+}
+
+- (UIColor *)toneTintColor
+{
+    return self.toneLayer.toneTintColor;
+}
+
+-(void)setToneTintColor:(UIColor *)toneTintColor
+{
+    self.toneLayer.toneTintColor = toneTintColor;
+    [self.toneLayer setNeedsDisplay];
+}
+
+- (CGFloat)toneHeight
+{
+    return self.toneLayer.toneHeight;
+}
+
+- (void)setToneHeight:(CGFloat)toneHeight
+{
+    self.toneLayer.toneHeight = toneHeight;
+}
+
+- (void)setToneAnimateDuration:(CGFloat)toneAnimateDuration
+{
+    _toneAnimateDuration = toneAnimateDuration;
+    [self.toneLayer setNeedsDisplay];
+}
+
+- (NSInteger)indeterminate
+{
+    CAAnimation *spinAnimation = [self.layer animationForKey:@"indeterminateAnimation"];
+    return (spinAnimation == nil ? 0 : 1);
+}
+
+- (void)setIndeterminate:(NSInteger)indeterminate
+{
+    if (indeterminate) {
+        if (!self.indeterminate) {
+            CABasicAnimation *spinAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+            spinAnimation.byValue = [NSNumber numberWithDouble:indeterminate > 0 ? 2.0f*M_PI : -2.0f*M_PI];
+            spinAnimation.duration = self.indeterminateDuration;
+            spinAnimation.repeatCount = HUGE_VALF;
+            [self.layer addAnimation:spinAnimation forKey:@"indeterminateAnimation"];
+        }
+    } else {
+        [self.layer removeAnimationForKey:@"indeterminateAnimation"];
+    }
+}
+
+@end

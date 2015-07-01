@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Alignment constraints to the first baseline" minToolsVersion="6.0"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="DoublePhoneCell">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eMr-KM-Q7J" customClass="AudioRecordAndPlayView">
+                        <rect key="frame" x="8" y="330" width="384" height="108"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F4S-IE-PeB">
+                        <rect key="frame" x="40" y="232" width="158" height="56"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="56" id="eto-3o-15q"/>
+                            <constraint firstAttribute="width" constant="158" id="w4B-DY-MAm"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="boldSystem" pointSize="52"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gf1-w4-tfU">
+                        <rect key="frame" x="202" y="232" width="158" height="56"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <fontDescription key="fontDescription" type="boldSystem" pointSize="52"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ZM-wW-s5a">
+                        <rect key="frame" x="10" y="8" width="380" height="179"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ETn-bz-d0d" customClass="HSToneView">
+                                <rect key="frame" x="0.0" y="0.0" width="190" height="179"/>
+                                <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="G6W-vG-rmh" customClass="HSToneView">
+                                <rect key="frame" x="190" y="0.0" width="190" height="179"/>
+                                <color key="backgroundColor" red="0.38319198409999999" green="0.63099348879999995" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" red="0.38319198409999999" green="0.63099348879999995" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstItem="ETn-bz-d0d" firstAttribute="leading" secondItem="2ZM-wW-s5a" secondAttribute="leading" id="72N-4J-CAl"/>
+                            <constraint firstAttribute="bottom" secondItem="G6W-vG-rmh" secondAttribute="bottom" id="9xW-HP-NBp"/>
+                            <constraint firstItem="G6W-vG-rmh" firstAttribute="top" secondItem="2ZM-wW-s5a" secondAttribute="top" id="Hra-Mt-Wdh"/>
+                            <constraint firstItem="ETn-bz-d0d" firstAttribute="width" secondItem="G6W-vG-rmh" secondAttribute="width" id="TDn-a7-5Sa"/>
+                            <constraint firstItem="G6W-vG-rmh" firstAttribute="leading" secondItem="ETn-bz-d0d" secondAttribute="trailing" id="WoT-oE-ZhN"/>
+                            <constraint firstItem="G6W-vG-rmh" firstAttribute="top" secondItem="ETn-bz-d0d" secondAttribute="top" id="XXg-Jm-pBy"/>
+                            <constraint firstAttribute="trailing" secondItem="G6W-vG-rmh" secondAttribute="trailing" id="rsJ-H6-7O6"/>
+                            <constraint firstItem="G6W-vG-rmh" firstAttribute="bottom" secondItem="ETn-bz-d0d" secondAttribute="bottom" id="xXc-UM-inF"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leadingMargin" id="0Ue-TI-TgS"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="0bG-GH-o7i"/>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="top" secondItem="F4S-IE-PeB" secondAttribute="bottom" constant="42" id="BES-gp-Xto"/>
+                <constraint firstItem="gf1-w4-tfU" firstAttribute="leading" secondItem="F4S-IE-PeB" secondAttribute="trailing" constant="4" id="BPG-FA-CEr"/>
+                <constraint firstAttribute="trailing" secondItem="gf1-w4-tfU" secondAttribute="trailing" constant="40" id="HXz-4S-avz"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="232" id="Psu-BG-yd6"/>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="trailing" secondItem="gTV-IL-0wX" secondAttribute="trailingMargin" id="Rhs-Dr-Cfh"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="top" secondItem="2ZM-wW-s5a" secondAttribute="bottom" constant="45" id="cIQ-5S-27H"/>
+                <constraint firstItem="2ZM-wW-s5a" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="topMargin" id="cmN-bB-Dit"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="width" secondItem="gf1-w4-tfU" secondAttribute="width" id="dGM-Cl-IKK"/>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="centerX" secondItem="2ZM-wW-s5a" secondAttribute="centerX" id="dq8-Ea-xDg"/>
+                <constraint firstItem="2ZM-wW-s5a" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="10" id="jqW-kM-mQ6"/>
+                <constraint firstItem="gf1-w4-tfU" firstAttribute="firstBaseline" secondItem="F4S-IE-PeB" secondAttribute="firstBaseline" id="nao-qD-ZwC"/>
+                <constraint firstAttribute="bottom" secondItem="eMr-KM-Q7J" secondAttribute="bottom" constant="62" id="omu-87-qsj"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="baseline" secondItem="gf1-w4-tfU" secondAttribute="baseline" id="y6f-qh-eXJ"/>
+            </constraints>
+            <connections>
+                <outlet property="audioControlView" destination="eMr-KM-Q7J" id="UeV-aZ-xKI"/>
+                <outlet property="lblContentFirst" destination="F4S-IE-PeB" id="Pae-WK-Bpm"/>
+                <outlet property="lblContentSecond" destination="gf1-w4-tfU" id="lPS-kI-tjP"/>
+                <outlet property="toneBackgroundView" destination="2ZM-wW-s5a" id="nqr-fY-8Wp"/>
+                <outlet property="toneFirstView" destination="ETn-bz-d0d" id="Nnd-Vh-c7f"/>
+                <outlet property="toneSecondView" destination="G6W-vG-rmh" id="aXu-sc-Egx"/>
+            </connections>
+            <point key="canvasLocation" x="228" y="329"/>
+        </collectionViewCell>
+    </objects>
+</document>

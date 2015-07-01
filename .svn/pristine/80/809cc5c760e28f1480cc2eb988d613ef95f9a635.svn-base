@@ -1,0 +1,242 @@
+//
+//  ReportViewController.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/6/10.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "ReportViewController.h"
+#import "UIView+Additions.h"
+#import "UIImageView+Extra.h"
+#import "UINavigationController+Extern.h"
+#import "AnimateHelper.h"
+
+#import "ToneReportCell.h"
+#import "PinyinReportCell.h"
+#import "AudioHeaderView.h"
+
+#import "FetchedResultsTableDataSource.h"
+
+#import "AppDelegate.h"
+#import "Record.h"
+#import "ToneKnowledge.h"
+
+@interface ReportViewController ()<UITableViewDelegate>
+
+@property (nonatomic, weak) UIButton *selectedButton;
+@property (nonatomic, strong) FetchedResultsTableDataSource *pinyinDataSource;
+@property (nonatomic, strong) FetchedResultsTableDataSource *toneDataSource;
+
+@end
+
+@implementation ReportViewController
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.automaticallyAdjustsScrollViewInsets = NO;
+    
+    UIImage *imgBack = [UIImage imageNamed:@"back-arrow"];
+    [self.navigationController setPresentNavigationBarBackItemWihtTarget:self image:imgBack];
+    self.view.backgroundColor = RGB(233, 239, 242);
+    self.selectedButton = self.btnTone;
+    [self resetTitleWithButton:self.selectedButton];
+    
+    self.btnTone.layer.cornerRadius = self.btnTone.height*0.1;
+    self.btnTone.layer.cornerRadius = self.btnTone.height*0.1;
+    self.btnTone.layer.borderColor = HEXCOLOR(0x00abf1).CGColor;
+    self.btnTone.layer.borderWidth = 2;
+    self.btnTone.backgroundColor = HEXCOLOR(0x00abf1);
+    [self.btnTone setTitleColor:kColorFFBackground forState:UIControlStateNormal];
+    
+    self.btnPinyin.layer.cornerRadius = self.btnPinyin.height*0.1;
+    self.btnPinyin.layer.cornerRadius = self.btnPinyin.height*0.1;
+    self.btnPinyin.layer.borderColor = HEXCOLOR(0x00abf1).CGColor;
+    self.btnPinyin.layer.borderWidth = 2;
+    self.btnPinyin.backgroundColor = kColorFFBackground;
+    [self.btnPinyin setTitleColor:HEXCOLOR(0x00abf1) forState:UIControlStateNormal];
+    
+    [self initToneTableView];
+    [self initPinyinTableView];
+}
+
+- (void)initPinyinTableView
+{
+    ReportViewController *weakSelf = self;
+    AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
+    UINib *pinyinNib = [UINib nibWithNibName:@"PinyinReportCell" bundle:nil];
+    [self.tbvPinyinReport registerNib:pinyinNib forCellReuseIdentifier:@"PinyinCell"];
+    [self.tbvPinyinReport registerClass:[UITableViewHeaderFooterView class] forHeaderFooterViewReuseIdentifier:@"PinyinHeader"];
+    
+    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"Record"];
+    fetchRequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"learnType" ascending:YES], [NSSortDescriptor sortDescriptorWithKey:@"wrongTimes" ascending:NO]];
+    NSFetchedResultsController *fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:appDelegate.store.mainManagedObjectContext sectionNameKeyPath:@"learnType" cacheName:nil];
+    
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"learnType IN %@ AND wrongTimes >= %@", @[@7], @1];
+    self.pinyinDataSource = [[FetchedResultsTableDataSource alloc] initWithTableView:self.tbvPinyinReport cellIdentifier:@"PinyinCell" fetchedResultsController:fetchedResultsController];
+    [self.pinyinDataSource changePredicate:predicate];
+    
+    self.pinyinDataSource.configureCellBlock = ^(id cell, id item, id indexPath){
+        [weakSelf configurePinyinCell:cell item:item indexPath:indexPath];
+    };
+    self.tbvPinyinReport.dataSource = self.pinyinDataSource;
+    self.tbvPinyinReport.delegate   = self;
+    self.tbvPinyinReport.tableFooterView = [[UIView alloc] init];
+}
+
+
+- (void)initToneTableView
+{
+    ReportViewController *weakSelf = self;
+    AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
+    UINib *toneNib = [UINib nibWithNibName:@"ToneReportCell" bundle:nil];
+    [self.tbvToneReport registerNib:toneNib forCellReuseIdentifier:@"ToneCell"];
+    [self.tbvToneReport registerClass:[UITableViewHeaderFooterView class] forHeaderFooterViewReuseIdentifier:@"ToneHeader"];
+    NSFetchRequest *fetchRequest2 = [NSFetchRequest fetchRequestWithEntityName:@"ToneKnowledge"];
+    fetchRequest2.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"learnType" ascending:YES], [NSSortDescriptor sortDescriptorWithKey:@"tone" ascending:YES]];
+    NSFetchedResultsController *fetchedResultsController2 = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest2 managedObjectContext:appDelegate.store.mainManagedObjectContext sectionNameKeyPath:@"learnType" cacheName:nil];
+    NSPredicate *predicate2 = [NSPredicate predicateWithFormat:@"learnType IN %@", @[@1, @3]];
+    self.toneDataSource = [[FetchedResultsTableDataSource alloc] initWithTableView:self.tbvToneReport cellIdentifier:@"ToneCell" fetchedResultsController:fetchedResultsController2];
+    [self.toneDataSource changePredicate:predicate2];
+    self.toneDataSource.configureCellBlock = ^(id cell, id item, id indexPath){
+        [weakSelf configureToneCell:cell item:item indexPath:indexPath];
+    };
+    self.tbvToneReport.dataSource = self.toneDataSource;
+    self.tbvToneReport.delegate = self;
+    self.tbvToneReport.tableFooterView = [[UIView alloc] init];
+    self.tbvToneReport.backgroundColor = self.view.backgroundColor;
+}
+
+- (void)configurePinyinCell:(UITableViewCell *)aCell item:(Record *)record indexPath:(NSIndexPath *)indexPath
+{
+    PinyinReportCell *cell = (PinyinReportCell *)aCell;
+    cell.textLabel.text = [record.pinyin stringByReplacingOccurrencesOfString:@"|" withString:@" " options:NSCaseInsensitiveSearch range:NSMakeRange(0, record.pinyin.length)];
+    cell.record = record;
+}
+
+- (void)configureToneCell:(UITableViewCell *)aCell item:(ToneKnowledge *)record indexPath:(NSIndexPath *)indexPath
+{
+    ToneReportCell *cell = (ToneReportCell *)aCell;
+    NSString *toneName = [record.tone stringByReplacingOccurrencesOfString:@"|" withString:@""];
+    UIImage *imgTone = [UIImage imageNamed:toneName];
+    [cell.imgvTone showClipImageWithImage:imgTone];
+    cell.progressView.color = indexPath.section <= 0 ? HEXCOLOR(0xec8787):HEXCOLOR(0x87ceec);
+    CGFloat progress = MIN(record.rightTimes.integerValue/kAudioTotalWrongTimes, 1.0);
+    cell.progressView.progress = progress;
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+}
+
+- (IBAction)changeAction:(id)sender
+{
+    UIButton *button = (UIButton *)sender;
+    if ([button isEqual:self.selectedButton]) return;
+    [self resetButtonsState:sender];
+    [self resetButtonsState:self.selectedButton];
+    [self resetTitleWithButton:button];
+    [self resetReportTableViewsPosition:button];
+    self.selectedButton = button;
+}
+
+- (void)resetButtonsState:(id)sender
+{
+    UIButton *button = (UIButton *)sender;
+    if ([button isEqual:self.selectedButton])
+    {
+        [button setTitleColor:HEXCOLOR(0x00abf1) forState:UIControlStateNormal];
+        button.backgroundColor = kColorFFBackground;
+    }
+    else
+    {
+        [button setTitleColor:kColorFFBackground forState:UIControlStateNormal];
+        button.backgroundColor = HEXCOLOR(0x00abf1);
+    }
+}
+
+- (void)resetTitleWithButton:(UIButton *)button
+{
+    if ([button isEqual:self.btnTone])
+    {
+        self.title = @"声调评估";
+    }
+    else
+    {
+        self.title = @"拼音评估";
+    }
+}
+
+- (void)resetReportTableViewsPosition:(UIButton *)button
+{
+    CGFloat duration = 0.5;
+    CGFloat width = self.view.width;
+    self.btnTone.enabled = NO;
+    self.btnPinyin.enabled = NO;
+    if ([button isEqual:self.btnTone])
+    {
+        [AnimateHelper transitionView:self.tbvToneReport fromCenter:self.tbvToneReport.center toCenter:CGPointMake(width*0.5, self.tbvToneReport.centerY) duration:duration completion:^(BOOL finished) {
+            self.btnTone.enabled = YES;
+            self.btnPinyin.enabled = YES;
+        }];
+        [AnimateHelper transitionView:self.tbvPinyinReport fromCenter:self.tbvPinyinReport.center toCenter:CGPointMake(width*1.5, self.tbvPinyinReport.centerY) duration:duration completion:nil];
+        
+    }
+    else
+    {
+        [AnimateHelper transitionView:self.tbvToneReport fromCenter:self.tbvToneReport.center toCenter:CGPointMake(-width*0.5, self.tbvToneReport.centerY) duration:duration completion:^(BOOL finished) {
+            self.btnTone.enabled = YES;
+            self.btnPinyin.enabled = YES;
+        }];
+        [AnimateHelper transitionView:self.tbvPinyinReport fromCenter:self.tbvPinyinReport.center toCenter:CGPointMake(width*0.5, self.tbvPinyinReport.centerY) duration:duration completion:nil];
+    }
+}
+
+- (void)layoutViewsAppear
+{
+    self.tbvPinyinReport.top = self.navigationController.navigationBar.bottom;
+}
+
+#pragma mark - UITableView DataSource/ Delegate
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    CGFloat height = [tableView isEqual:self.tbvToneReport] ? 50: 50;
+    return height;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    if ([tableView isEqual:self.tbvToneReport])
+    {
+        UITableViewHeaderFooterView *headerView = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"ToneHeader"];
+        headerView.backgroundView.backgroundColor = tableView.backgroundColor;
+        headerView.contentView.backgroundColor = tableView.backgroundColor;
+        headerView.textLabel.text = section <= 0 ? @"单音节":@"双音节";
+        return headerView;
+    }
+    else
+    {
+        UITableViewHeaderFooterView *headerView = [tableView dequeueReusableHeaderFooterViewWithIdentifier:@"PinyinHeader"];
+        headerView.backgroundView.backgroundColor = RGB(233, 239, 242);
+        headerView.contentView.backgroundColor = RGB(233, 239, 242);
+        headerView.textLabel.text = @"您常错的拼音";
+        return headerView;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+}
+
+@end

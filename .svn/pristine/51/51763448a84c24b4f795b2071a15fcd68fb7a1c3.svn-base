@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="SinglePhoneCell">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="xBp-i7-1hL" customClass="HSToneView">
+                        <rect key="frame" x="40" y="67" width="320" height="150"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="number" keyPath="tone">
+                                <integer key="value" value="-1"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
+                    </view>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="k9T-ul-Gr5" customClass="AudioRecordAndPlayView">
+                        <rect key="frame" x="8" y="330" width="384" height="108"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="a" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EjU-ow-vEg">
+                        <rect key="frame" x="40" y="243" width="320" height="60"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <fontDescription key="fontDescription" name="STHeitiSC-Medium" family="Heiti SC" pointSize="62"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="k9T-ul-Gr5" secondAttribute="bottom" constant="62" id="1pP-dn-N5C"/>
+                <constraint firstItem="xBp-i7-1hL" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="topMargin" constant="59" id="2yi-Ov-lhe"/>
+                <constraint firstItem="EjU-ow-vEg" firstAttribute="top" secondItem="xBp-i7-1hL" secondAttribute="bottom" constant="26" id="4iX-pZ-3gz"/>
+                <constraint firstItem="xBp-i7-1hL" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="Bal-O0-MJ7"/>
+                <constraint firstAttribute="centerX" secondItem="xBp-i7-1hL" secondAttribute="centerX" id="DPi-tm-K9i"/>
+                <constraint firstItem="k9T-ul-Gr5" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="8" id="DiT-T9-LN2"/>
+                <constraint firstItem="k9T-ul-Gr5" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="330" id="Kf7-Sz-G9X"/>
+                <constraint firstAttribute="centerX" secondItem="k9T-ul-Gr5" secondAttribute="centerX" id="LYN-ta-iTK"/>
+                <constraint firstAttribute="trailing" secondItem="k9T-ul-Gr5" secondAttribute="trailing" constant="8" id="Mqd-zn-Rr1"/>
+                <constraint firstAttribute="bottom" secondItem="xBp-i7-1hL" secondAttribute="bottom" constant="283" id="Nft-7U-G3N"/>
+                <constraint firstAttribute="centerX" secondItem="EjU-ow-vEg" secondAttribute="centerX" id="O1c-bg-aM9"/>
+                <constraint firstItem="EjU-ow-vEg" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="kG0-gP-L1I"/>
+                <constraint firstAttribute="trailing" secondItem="EjU-ow-vEg" secondAttribute="trailing" constant="40" id="mbZ-yx-FB3"/>
+                <constraint firstAttribute="trailing" secondItem="xBp-i7-1hL" secondAttribute="trailing" constant="40" id="o9Y-o4-L4a"/>
+                <constraint firstItem="k9T-ul-Gr5" firstAttribute="top" secondItem="EjU-ow-vEg" secondAttribute="bottom" constant="27" id="sqR-9b-5yt"/>
+            </constraints>
+            <size key="customSize" width="256" height="352"/>
+            <connections>
+                <outlet property="audioControlView" destination="k9T-ul-Gr5" id="pMp-Re-VaB"/>
+                <outlet property="lblPhone" destination="EjU-ow-vEg" id="kh8-P5-ouy"/>
+                <outlet property="toneView" destination="xBp-i7-1hL" id="fqX-fc-c4T"/>
+            </connections>
+            <point key="canvasLocation" x="244" y="223"/>
+        </collectionViewCell>
+    </objects>
+</document>

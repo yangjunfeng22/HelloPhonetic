@@ -1,0 +1,18 @@
+//
+//  Record+path.h
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/28.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "Record.h"
+
+@interface Record (path)
+
++ (NSString *)pathOfAudio:(NSString *)name bundle:(NSString *)bundle;
++ (NSString *)pathOfPicutre:(NSString *)name bundle:(NSString *)bundle;
+
++ (NSString *)pathOfAudio:(NSString *)name type:(NSString *)type bundle:(NSString *)bundle;
+
+@end

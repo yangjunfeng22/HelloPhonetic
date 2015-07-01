@@ -1,0 +1,27 @@
+//
+//  PrefixHeader.pch
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/15.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+
+#import <Availability.h>
+
+#ifndef __IPHONE_3_0
+#warning "This project uses features only available in iOS SDK 3.0 and later."
+#endif
+
+//#ifdef  DEBUG_TEST
+
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import <QuartzCore/QuartzCore.h>
+#import <CoreData/CoreData.h>
+
+#import "MacroDefinition.h"
+#import "constants.h"
+
+#endif

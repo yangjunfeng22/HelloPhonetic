@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="ExciseFirstCell">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <userGuides>
+                <userLayoutGuide location="411" affinity="minY"/>
+                <userLayoutGuide location="250" affinity="minY"/>
+            </userGuides>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+                <subviews>
+                    <label clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YR9-SX-A6o">
+                        <rect key="frame" x="40" y="194" width="320" height="60"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="60" id="ilH-Sb-Guz"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="boldSystem" pointSize="52"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <button tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Uay-0f-ejs" customClass="ToneButton">
+                        <rect key="frame" x="8" y="344" width="80" height="76"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="76" id="Pqu-BX-Vs6"/>
+                            <constraint firstAttribute="width" secondItem="Uay-0f-ejs" secondAttribute="height" multiplier="71:69" constant="1.7971014492753739" id="Sfs-aG-N39"/>
+                        </constraints>
+                        <state key="normal">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                        </state>
+                        <connections>
+                            <action selector="selectToneAction:" destination="gTV-IL-0wX" eventType="touchUpInside" id="9sw-nO-iBW"/>
+                        </connections>
+                    </button>
+                    <button tag="2" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1om-pa-VO0" customClass="ToneButton">
+                        <rect key="frame" x="110" y="344" width="80" height="76"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="76" id="Bag-hj-fTH"/>
+                            <constraint firstAttribute="width" secondItem="1om-pa-VO0" secondAttribute="height" multiplier="71:69" constant="1.7971014492753739" id="kBA-4p-Hb8"/>
+                        </constraints>
+                        <state key="normal">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                        </state>
+                        <connections>
+                            <action selector="selectToneAction:" destination="gTV-IL-0wX" eventType="touchUpInside" id="ptt-yG-5U0"/>
+                        </connections>
+                    </button>
+                    <button tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7EB-5B-wsD" customClass="ToneButton">
+                        <rect key="frame" x="211" y="344" width="80" height="76"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="76" id="C3J-j0-k6a"/>
+                            <constraint firstAttribute="width" secondItem="7EB-5B-wsD" secondAttribute="height" multiplier="71:69" constant="1.7971014492753739" id="wwt-Kt-ey5"/>
+                        </constraints>
+                        <state key="normal">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                        </state>
+                        <connections>
+                            <action selector="selectToneAction:" destination="gTV-IL-0wX" eventType="touchUpInside" id="SJw-oX-64L"/>
+                        </connections>
+                    </button>
+                    <button tag="4" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EpV-vS-wUN" customClass="ToneButton">
+                        <rect key="frame" x="312" y="344" width="80" height="76"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="width" secondItem="EpV-vS-wUN" secondAttribute="height" multiplier="71:69" constant="1.7971014492753739" id="ZVc-wx-Iuf"/>
+                            <constraint firstAttribute="height" constant="76" id="nWb-wl-A3e"/>
+                        </constraints>
+                        <state key="normal">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                        </state>
+                        <connections>
+                            <action selector="selectToneAction:" destination="gTV-IL-0wX" eventType="touchUpInside" id="4Yh-kH-IQX"/>
+                        </connections>
+                    </button>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Xcf-7e-mwL" customClass="AudioRecordAndPlayView">
+                        <rect key="frame" x="8" y="79" width="384" height="100"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstItem="Uay-0f-ejs" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="8" id="6Wh-mZ-FKN"/>
+                <constraint firstItem="Xcf-7e-mwL" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="79" id="7OY-go-5Db"/>
+                <constraint firstAttribute="bottom" secondItem="1om-pa-VO0" secondAttribute="bottom" constant="80" id="9gP-Is-rgq"/>
+                <constraint firstItem="1om-pa-VO0" firstAttribute="baseline" secondItem="7EB-5B-wsD" secondAttribute="baseline" id="BCk-vA-Nst"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="leading" secondItem="7EB-5B-wsD" secondAttribute="trailing" constant="21" id="Elb-R3-fjn"/>
+                <constraint firstItem="YR9-SX-A6o" firstAttribute="top" secondItem="Xcf-7e-mwL" secondAttribute="bottom" constant="15" id="Jmq-WO-Amz"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="centerY" secondItem="7EB-5B-wsD" secondAttribute="centerY" id="KBu-kp-8Ng"/>
+                <constraint firstItem="7EB-5B-wsD" firstAttribute="leading" secondItem="1om-pa-VO0" secondAttribute="trailing" constant="21" id="KX7-M9-fMM"/>
+                <constraint firstItem="1om-pa-VO0" firstAttribute="leading" secondItem="Uay-0f-ejs" secondAttribute="trailing" constant="22" id="Lv5-50-8ej"/>
+                <constraint firstItem="Xcf-7e-mwL" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leadingMargin" id="OZt-PS-HtK"/>
+                <constraint firstItem="1om-pa-VO0" firstAttribute="baseline" secondItem="Uay-0f-ejs" secondAttribute="baseline" id="OkK-NQ-iXE"/>
+                <constraint firstItem="1om-pa-VO0" firstAttribute="baseline" secondItem="EpV-vS-wUN" secondAttribute="baseline" id="PVi-WT-efZ"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="leading" secondItem="7EB-5B-wsD" secondAttribute="trailing" constant="21" id="SV6-PB-Uj5"/>
+                <constraint firstItem="7EB-5B-wsD" firstAttribute="leading" secondItem="1om-pa-VO0" secondAttribute="trailing" constant="21" id="WNK-SD-lyu"/>
+                <constraint firstItem="1om-pa-VO0" firstAttribute="leading" secondItem="Uay-0f-ejs" secondAttribute="trailing" constant="22" id="Yc5-Gy-bTS"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="centerY" secondItem="1om-pa-VO0" secondAttribute="centerY" id="b4L-Oh-Wbj"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="width" secondItem="1om-pa-VO0" secondAttribute="width" id="huk-Bl-CNt"/>
+                <constraint firstItem="YR9-SX-A6o" firstAttribute="centerX" secondItem="Xcf-7e-mwL" secondAttribute="centerX" id="jBj-MK-YCq"/>
+                <constraint firstItem="YR9-SX-A6o" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="oKI-A5-7Yc"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="width" secondItem="7EB-5B-wsD" secondAttribute="width" id="oOh-Gd-VQf"/>
+                <constraint firstAttribute="centerX" secondItem="YR9-SX-A6o" secondAttribute="centerX" id="tN2-FL-3oC"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="centerY" secondItem="Uay-0f-ejs" secondAttribute="centerY" id="unq-jK-YVL"/>
+                <constraint firstAttribute="trailing" secondItem="EpV-vS-wUN" secondAttribute="trailing" constant="8" id="vtN-dY-LJt"/>
+                <constraint firstItem="EpV-vS-wUN" firstAttribute="width" secondItem="Uay-0f-ejs" secondAttribute="width" id="wIX-Jq-wQT"/>
+                <constraint firstItem="YR9-SX-A6o" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="194" id="wRZ-dU-sJG"/>
+                <constraint firstAttribute="centerX" secondItem="Xcf-7e-mwL" secondAttribute="centerX" id="wYb-WY-0RI"/>
+            </constraints>
+            <connections>
+                <outlet property="audioControlView" destination="Xcf-7e-mwL" id="jYe-ar-mKz"/>
+                <outlet property="btnToneFour" destination="EpV-vS-wUN" id="kCZ-vy-BoZ"/>
+                <outlet property="btnToneOne" destination="Uay-0f-ejs" id="Mcg-DJ-t3l"/>
+                <outlet property="btnToneThree" destination="7EB-5B-wsD" id="tuG-hc-IyW"/>
+                <outlet property="btnToneTwo" destination="1om-pa-VO0" id="gko-Rg-C8P"/>
+                <outlet property="lblContent" destination="YR9-SX-A6o" id="H5w-qe-79K"/>
+            </connections>
+        </collectionViewCell>
+    </objects>
+</document>

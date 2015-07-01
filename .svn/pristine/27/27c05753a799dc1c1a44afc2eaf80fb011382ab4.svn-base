@@ -1,0 +1,28 @@
+//
+//  constants.h
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/22.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#ifndef HelloMyWords_constants_h
+#define HelloMyWords_constants_h
+
+typedef NS_ENUM(NSUInteger, LearnCheckPointType) {
+    LearnCheckPointTypeSinglePhone,
+    LearnCheckPointTypeDoublePhone,
+    LearnCheckPointTypeExciseFirst,
+    LearnCheckPointTypeExciseSecond,
+    LearnCheckPointTypeVowels,
+    LearnCheckPointTypeSyllable,
+    LearnCheckPointTypeConsonants,
+    LearnCheckPointTypeExcise
+};
+
+static NSString * const kUDKEY_Email  = @"Email";
+
+#define kSetUDUserEamil(email)     ([USER_DEFAULT setObject:email forKey:kUDKEY_Email], [USER_DEFAULT synchronize])
+#define kEmail  [USER_DEFAULT objectForKey:kUDKEY_Email]
+
+#endif

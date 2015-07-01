@@ -1,0 +1,208 @@
+//
+//  AnimateHelper.h
+//  LiveInShanghai
+//
+//  Created by junfengyang on 15/3/2.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+typedef NS_OPTIONS(NSUInteger, AnimationHelperOptions){
+    AnimationHelperOptionRotateY                 = 1 <<  0,
+    AnimationHelperOptionRotateX                 = 1 <<  1,
+};
+
+@interface AnimateHelper : NSObject
+
+/**
+ *  左侧推入自定义视图
+ *   -- 需将返回的动画添加到视图的layer层。
+ *
+ *  @return 动画
+ */
++ (CATransition *)pushInFromLeftOfCustomView;
+
+/**
+ *  右侧推入自定义的视图
+ *
+ *  @return 动画
+ */
++ (CATransition *)pushInFromRightOfCustomView;
+
+/**
+ *  下部推入自定义的视图
+ *
+ *  @return 动画
+ */
++ (CATransition *)pushInFromBottomOfCustomView;
+
+/**
+ *  自定义视图从上部移入
+ *
+ *  @return 动画
+ */
++ (CATransition *)moveInFromTopOfCustomView;
+
+/**
+ *  自定义视图从下部移入
+ *
+ *  @return 动画
+ */
++ (CATransition *)moveInFromBottomOfCustomView;
+
+/**
+ *  自定义视图从下部移出
+ *
+ *  @return 动画
+ */
++ (CATransition *)moveOutFromBottomOfCustomView;
+
+@end
+
+@interface AnimateHelper (pop)
+
+/**
+ *  转换视图。
+ *  -- 将视图从fromView转换到toView
+ *
+ *  @param fromView   源视图
+ *  @param toView     目标视图
+ *  @param completion 回调
+ */
++ (void)transitionFromView:(UIView *)fromView toView:(UIView *)toView completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  转换视图
+ *  -- 将视图从fromView转换到toView这里采用了POPSpringAnimation和3D转换结合的方式。
+ *
+ *  @param fromView   源视图
+ *  @param toView     目标视图
+ *  @param speed      速度
+ *  @param bounciness 回弹量
+ *  @param options    选项：支持两种，x方向和y方向。
+ *  @param completion 回调
+ */
++ (void)transitionFromView:(UIView *)fromView toView:(UIView *)toView speed:(CGFloat)speed bounciness:(CGFloat)bounciness options:(AnimationHelperOptions)options completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  将视图进行弹动
+ *
+ *  @param view 待弹动的视图。
+ */
++ (void)popUpAnimationWithView:(UIView *)view;
+
+/**
+ *  将视图进行抖动
+ *
+ *  @param view 待抖动的视图
+ */
++ (void)shakeAnimationWithView:(UIView *)view;
+
+/**
+ *  将视图进行缩放。
+ *
+ *  @param view   待缩放的视图
+ *  @param scaleX x方向缩放
+ *  @param scaleY y方向缩放
+ */
++ (void)scaleAnimationWithView:(UIView *)view scaleX:(CGFloat)scaleX scaleY:(CGFloat)scaleY;
+
+/**
+ *  将试图进行缩放
+ *
+ *  @param view       待缩放的试图
+ *  @param scaleX     x方向缩放
+ *  @param scaleY     y方向缩放
+ *  @param completion 回调
+ */
++ (void)scaleAnimationWithView:(UIView *)view scaleX:(CGFloat)scaleX scaleY:(CGFloat)scaleY completion:(void (^)(BOOL finished))completion;
+
++ (void)scaleAnimationWithView:(UIView *)view scaleX:(CGFloat)scaleX scaleY:(CGFloat)scaleY duration:(CFTimeInterval)duration completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  不带动画的缩放
+ *
+ *  @param view       待缩放的试图
+ *  @param scaleX     x方向缩放
+ *  @param scaleY     y方向缩放
+ *  @param completion 回调
+ */
++ (void)scaleWithView:(UIView *)view scaleX:(CGFloat)scaleX scaleY:(CGFloat)scaleY completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  移动视图
+ *
+ *  @param view       待移动的视图
+ *  @param fCenter    源中点
+ *  @param tCenter    目标中点
+ *  @param completion 回调
+ */
++ (void)transitionView:(UIView *)view fromCenter:(CGPoint)fCenter toCenter:(CGPoint)tCenter completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  移动视图
+ *
+ *  @param view       待移动的视图
+ *  @param fCenter    源中点
+ *  @param tCenter    目标中点
+ *  @param duration   动画耗时
+ *  @param completion 回调
+ */
++ (void)transitionView:(UIView *)view fromCenter:(CGPoint)fCenter toCenter:(CGPoint)tCenter duration:(CGFloat)duration completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  移动视图
+ *
+ *  @param view       待移动的视图
+ *  @param fCenter    源中点
+ *  @param tCenter    目标中点
+ *  @param duration   动画耗时
+ *  @param delay      延迟执行时间
+ *  @param completion 回调
+ */
++ (void)transitionView:(UIView *)view fromCenter:(CGPoint)fCenter toCenter:(CGPoint)tCenter duration:(CGFloat)duration delay:(CGFloat)delay completion:(void (^)(BOOL finished))completion;
+
++ (void)transitionLayer:(CALayer *)layer fromCenterY:(CGFloat)fCenterY toCenterY:(CGFloat)tCenterY duration:(CGFloat)duration delay:(CGFloat)delay completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  POPSpringAnimation的形式移动视图
+ *
+ *  @param view       待移动的视图
+ *  @param fCenter    源中点
+ *  @param tCenter    目标中点
+ *  @param completion 回调
+ */
++ (void)springView:(UIView *)view fromCenter:(CGPoint)fCenter toCenter:(CGPoint)tCenter completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  spring方式改变view的alpha
+ *
+ *  @param view       待变换的alpha。
+ *  @param fAlpha     alpha源值
+ *  @param tAlpha     alpha目标值
+ *  @param completion 返回
+ */
++ (void)springView:(UIView *)view fromAlpha:(CGFloat)fAlpha toAlpha:(CGFloat)tAlpha completion:(void (^)(BOOL finished))completion;
+
+/**
+ *  调整视图的alpha值
+ *
+ *  @param view   待调整的视图
+ *  @param fAlpha 源透明度
+ *  @param tAlpha 目标透明度
+ */
++ (void)transitionView:(UIView *)view fromAlpha:(CGFloat)fAlpha toAlpha:(CGFloat)tAlpha duration:(CGFloat)duration;
+
+/**
+ *  以动画形式显示百分比。
+ *  -- 百分比的数字动态增长。
+ *
+ *  @param label  显示数字的label
+ *  @param fValue 开始值
+ *  @param tValue 目标值
+ *  @param delay  延迟执行时间
+ */
++ (void)percentCountingAnimationWithLabel:(UILabel *)label fromValue:(CGFloat)fValue toValue:(CGFloat)tValue delay:(CGFloat)delay;
+
+@end

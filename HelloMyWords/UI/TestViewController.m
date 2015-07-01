@@ -1,0 +1,65 @@
+//
+//  TestViewController.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/25.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "TestViewController.h"
+#import "UIView+Additions.h"
+
+#import "Reachability.h"
+
+#import "HSToneView.h"
+
+@interface TestViewController ()
+@property (nonatomic, strong) HSToneView *toneView;
+
+@end
+
+@implementation TestViewController
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    self.toneView.backgroundColor = kColorLightRed;
+    self.toneView.toneAnimateDuration = 0.8;
+    [self.toneView setTone:3 animated:YES];
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+
+    if ( [[Reachability reachabilityForInternetConnection] currentReachabilityStatus] == NotReachable ){
+        DLog(@"不能连接网络");
+    }
+    
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - 属性
+- (HSToneView *)toneView
+{
+    if (!_toneView)
+    {
+        CGFloat miniFactor = self.view.width*0.8;
+        CGRect frame = CGRectMake((self.view.width-miniFactor)*0.5, self.navigationController.navigationBar.bottom + 26, miniFactor, 100);
+        _toneView = [[HSToneView alloc] initWithFrame:frame];
+        _toneView.indeterminateDuration = 0.1f;
+        _toneView.toneAnimateDuration = 1.0;
+        _toneView.toneTintColor = RGBA(0, 174, 224, 1);
+        [self.view addSubview:_toneView];
+    }
+    return _toneView;
+}
+
+
+@end

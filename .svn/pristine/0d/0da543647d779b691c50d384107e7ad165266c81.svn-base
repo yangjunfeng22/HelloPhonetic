@@ -1,0 +1,117 @@
+//
+//  SinglePhoneCell.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/27.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "SinglePhoneCell.h"
+#import "Record+path.h"
+#import "UIView+Additions.h"
+#import "AnimateHelper.h"
+
+static const NSString *audioBundle = @"SinglePhone";
+
+@implementation SinglePhoneCell
+
+- (void)awakeFromNib
+{
+    self.audioControlView.delegate = self;
+    
+    self.backgroundColor = self.superview.backgroundColor;
+    self.audioControlView.backgroundColor = self.backgroundColor;
+    self.lblPhone.backgroundColor = self.backgroundColor;
+    
+    self.toneView.backgroundColor = kToneBackgroundColor;
+    self.toneView.layer.cornerRadius = self.toneView.height * 0.1;
+    self.toneView.toneTintColor = kToneTintColor;
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    
+    [self.toneView clearTone];
+    self.audioControlView.controlMode = AudioControlModeDefault;
+}
+
+- (void)prepareForAppearLayout
+{
+    self.audioControlView.alpha = 0;
+    self.toneView.alpha = 0;
+    self.lblPhone.alpha = 0;
+}
+
+- (void)layoutSubviewsAppear
+{
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.audioControlView.alpha = 1;
+        [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1N.y toCenterY:center1O.y duration:0.8 delay:0 completion:^(BOOL finished) {
+            // 一开始自动播放相关音频
+            [self playSourceAudio];
+        }];
+    }];
+    
+    
+    CGPoint center2O = self.toneView.center;
+    CGPoint center2N = CGPointMake(self.toneView.centerX, -self.toneView.height);
+    [AnimateHelper transitionLayer:self.toneView.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.toneView.alpha = 1;
+        [AnimateHelper transitionLayer:self.toneView.layer fromCenterY:center2N.y toCenterY:center2O.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    CGFloat duration = 0.5;
+    
+    [AnimateHelper transitionView:self.lblPhone fromAlpha:0 toAlpha:1 duration:duration*3];
+}
+
+- (void)layoutSubviewsDisappear
+{
+    CGFloat duration = 0.5;
+    
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height*0.5);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.audioControlView fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint center2O = self.toneView.center;
+    CGPoint center2N = CGPointMake(self.toneView.centerX, -self.toneView.height*0.5);
+    [AnimateHelper transitionLayer:self.toneView.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.toneView fromAlpha:1 toAlpha:0 duration:duration];
+    [AnimateHelper transitionView:self.lblPhone fromAlpha:1 toAlpha:0 duration:duration];
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+}
+
+- (void)playSourceAudio
+{
+    [self.audioControlView playSourceAction:nil];
+}
+
+#pragma mark - 属性
+- (void)setRecord:(Record *)record
+{
+    [super setRecord:record];
+    
+    self.lblPhone.text = record.pinyin;
+    NSString *strToneName = [[NSString alloc] initWithFormat:@"声调%@", record.tone];
+    UIImage *imgTone = [UIImage imageNamed:strToneName];
+    self.imgvTone.image = imgTone;
+    self.audioControlView.sourceAudio = [Record pathOfAudio:record.audioName type:@"mp3" bundle:@"SinglePhone"];
+}
+
+#pragma mark - AudioControlView delegate
+- (void)startPlayAudio:(NSString *)audioPath duration:(NSTimeInterval)duration
+{
+    self.toneView.toneAnimateDuration = duration;
+    [self.toneView setTone:self.record.tone.integerValue animated:YES];
+}
+
+
+@end

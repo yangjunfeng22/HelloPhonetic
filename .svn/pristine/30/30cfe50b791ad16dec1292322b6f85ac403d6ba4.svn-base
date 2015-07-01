@@ -1,0 +1,35 @@
+//
+//  Record+path.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/28.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "Record+path.h"
+
+@implementation Record (path)
+
++ (NSBundle *)bundleWithName:(NSString *)bundleName
+{
+    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+    NSURL *url = [bundle URLForResource:bundleName withExtension:@"bundle"];
+    NSBundle *customBundle = [NSBundle bundleWithURL:url];
+    return customBundle;
+}
+
++ (NSString *)pathOfAudio:(NSString *)name bundle:(NSString *)bundleName
+{
+    NSBundle *audioBundle = [self bundleWithName:bundleName];
+    NSString *path = [audioBundle pathForResource:name ofType:@"mp3"];
+    return path;
+}
+
++ (NSString *)pathOfPicutre:(NSString *)name bundle:(NSString *)bundleName
+{
+    NSBundle *imageBundle = [self bundleWithName:bundleName];
+    NSString *path = [imageBundle pathForResource:name ofType:@"png"];
+    return path;
+}
+
+@end

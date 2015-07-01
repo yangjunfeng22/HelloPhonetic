@@ -1,0 +1,28 @@
+//
+//  Record.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/6/2.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "Record.h"
+
+
+@implementation Record
+
+@dynamic audioName;
+@dynamic chinese;
+@dynamic learnType;
+@dynamic phone;
+@dynamic pinyin;
+@dynamic recordID;
+@dynamic rightTimes;
+@dynamic tone;
+@dynamic totalTimes;
+@dynamic wrongPinyin;
+@dynamic wrongTimes;
+@dynamic wrongTone;
+@dynamic picName;
+
+@end

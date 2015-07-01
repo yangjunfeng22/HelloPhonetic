@@ -1,0 +1,181 @@
+//
+//  VowelsCell.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/28.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "VowelsCell.h"
+#import "ImageCell.h"
+#import "Record+path.h"
+#import "AnimateHelper.h"
+
+#import "UIView+Additions.h"
+
+@interface VowelsCell ()<UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UICollectionViewDataSource>
+@property (nonatomic) NSInteger numberOfItems;
+@property (nonatomic) CGSize itemSize;
+@property (nonatomic) NSMutableArray *arrImages;
+
+@end
+
+@implementation VowelsCell
+
+- (void)awakeFromNib
+{
+    self.numberOfItems = 1;
+    
+    self.audioControlView.controlMode = AudioControlModeDefault;
+    self.audioControlView.backgroundColor = self.backgroundColor;
+    
+    self.lblContent.textColor = kContentColor;
+    
+    UINib *nibSinglePhone = [UINib nibWithNibName:@"ImageCell" bundle:nil];
+    [self.imageCollectionView registerNib:nibSinglePhone forCellWithReuseIdentifier:@"ImageCell"];
+    self.imageCollectionView.backgroundColor = self.backgroundColor;
+    // 这是默认的ItemSize
+    self.itemSize = ((UICollectionViewFlowLayout *)self.imageCollectionView.collectionViewLayout).itemSize;
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    
+    self.numberOfItems = 0;
+    
+    [self.arrImages removeAllObjects];
+    [self.imageCollectionView reloadData];
+    self.audioControlView.controlMode = AudioControlModeDefault;
+}
+
+- (void)prepareForAppearLayout
+{
+    self.imageCollectionView.alpha = 0;
+    self.audioControlView.alpha = 0;
+    self.lblContent.alpha = 0;
+}
+
+- (void)layoutSubviewsAppear
+{
+    
+    CGPoint centerIO = self.imageCollectionView.center;
+    CGPoint centerIN = CGPointMake(self.imageCollectionView.centerX, -self.imageCollectionView.height*0.5);
+    [AnimateHelper transitionLayer:self.imageCollectionView.layer fromCenterY:centerIO.y toCenterY:centerIN.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.imageCollectionView.alpha = 1;
+        [AnimateHelper transitionLayer:self.imageCollectionView.layer fromCenterY:centerIN.y toCenterY:centerIO.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.audioControlView.alpha = 1;
+        [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1N.y toCenterY:center1O.y duration:0.8 delay:0 completion:^(BOOL finished) {
+            // 一开始自动播放相关音频
+            [self playSourceAudio];
+        }];
+    }];
+    
+    
+    CGPoint center2O = self.lblContent.center;
+    CGPoint center2N = CGPointMake(self.lblContent.centerX, -self.lblContent.height*0.5);
+    [AnimateHelper transitionLayer:self.lblContent.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.lblContent.alpha = 1;
+        [AnimateHelper transitionLayer:self.lblContent.layer fromCenterY:center2N.y toCenterY:center2O.y duration:0.8 delay:0 completion:nil];
+    }];
+}
+
+- (void)layoutSubviewsDisappear
+{
+    CGFloat duration = 0.5;
+    
+    CGPoint centerT1O = self.imageCollectionView.center;
+    CGPoint centerT1N = CGPointMake(self.imageCollectionView.centerX, -self.imageCollectionView.height*0.5);
+    [AnimateHelper transitionLayer:self.imageCollectionView.layer fromCenterY:centerT1O.y toCenterY:centerT1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.imageCollectionView fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height*0.5);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.audioControlView fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint center2O = self.lblContent.center;
+    CGPoint center2N = CGPointMake(self.lblContent.centerX, -self.lblContent.height*0.5);
+    [AnimateHelper transitionLayer:self.lblContent.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.lblContent fromAlpha:1 toAlpha:0 duration:duration];
+    
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    
+    //DLog(@"图片数量: %@", @(self.numberOfItems));
+    if (self.numberOfItems > 1)
+    {
+        CGFloat sizeWidth  = self.imageCollectionView.width/(CGFloat)self.numberOfItems - 3;
+        CGFloat sizeHeight = self.imageCollectionView.height * (self.numberOfItems > 1 ? 0.5:1);
+        
+        self.itemSize = CGSizeMake(sizeWidth, sizeHeight);
+        
+        [self.imageCollectionView reloadData];
+    }
+}
+
+- (void)playSourceAudio
+{
+    [self.audioControlView playSourceAction:nil];
+}
+
+#pragma mark - 属性
+- (void)setRecord:(Record *)record
+{
+    [super setRecord:record];
+    self.lblContent.text = record.phone;
+    NSArray *images = [record.picName componentsSeparatedByString:@"|"];
+    
+    if (images)
+    {
+        NSMutableArray *arrImage = [[NSMutableArray alloc] initWithCapacity:2];
+        for (NSString *name in images)
+        {
+            NSString *path = [Record pathOfPicutre:name bundle:@"VowelsImage"];
+            UIImage *image = [UIImage imageWithContentsOfFile:path];
+            if (image) {
+                [arrImage addObject:image];
+            }
+        }
+        [self.arrImages setArray:arrImage];
+    }
+    self.numberOfItems = [self.arrImages count];
+    self.audioControlView.sourceAudio = [Record pathOfAudio:record.audioName type:@"mp3" bundle:@"Vowels"];
+}
+
+- (NSMutableArray *)arrImages
+{
+    if (!_arrImages) {
+        _arrImages = [[NSMutableArray alloc] init];
+    }
+    return _arrImages;
+}
+
+#pragma mark - UICollectionView DataSource/Delegate
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    return self.numberOfItems;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    ImageCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"ImageCell" forIndexPath:indexPath];
+    cell.imgvTeach.image = [self.arrImages objectAtIndex:indexPath.item];
+    return cell;
+}
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    return self.itemSize;
+}
+
+@end

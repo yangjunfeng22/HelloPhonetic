@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Alignment constraints to the first baseline" minToolsVersion="6.0"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="DoublePhoneCell">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eMr-KM-Q7J" customClass="AudioRecordAndPlayView">
+                        <rect key="frame" x="8" y="330" width="384" height="108"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="a" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F4S-IE-PeB">
+                        <rect key="frame" x="40" y="241" width="158" height="60"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="60" id="eto-3o-15q"/>
+                            <constraint firstAttribute="width" constant="158" id="w4B-DY-MAm"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" name="STHeitiSC-Medium" family="Heiti SC" pointSize="62"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="a" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gf1-w4-tfU">
+                        <rect key="frame" x="202" y="241" width="158" height="60"/>
+                        <color key="backgroundColor" red="0.3411764706" green="0.33725490200000002" blue="0.72549019609999998" alpha="1" colorSpace="calibratedRGB"/>
+                        <fontDescription key="fontDescription" name="STHeitiSC-Medium" family="Heiti SC" pointSize="62"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ZM-wW-s5a" customClass="HSToneView">
+                        <rect key="frame" x="80" y="70" width="239" height="124"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="声调10.png" translatesAutoresizingMaskIntoConstraints="NO" id="2Ex-54-WE6">
+                                <rect key="frame" x="0.0" y="0.0" width="239" height="125"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="waveBorderDouble.png" translatesAutoresizingMaskIntoConstraints="NO" id="4gz-hJ-Djt">
+                                <rect key="frame" x="0.0" y="6" width="239" height="112"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="0.5" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="124" id="Dcn-jM-BiJ"/>
+                            <constraint firstAttribute="width" constant="239" id="HEf-xW-1ya"/>
+                            <constraint firstAttribute="bottom" secondItem="2Ex-54-WE6" secondAttribute="bottom" constant="-1" id="I70-fa-8DN"/>
+                            <constraint firstItem="2Ex-54-WE6" firstAttribute="leading" secondItem="2ZM-wW-s5a" secondAttribute="leading" id="cpF-Sa-Uml"/>
+                            <constraint firstAttribute="trailing" secondItem="2Ex-54-WE6" secondAttribute="trailing" id="fXA-bc-Ybe"/>
+                            <constraint firstItem="2Ex-54-WE6" firstAttribute="top" secondItem="2ZM-wW-s5a" secondAttribute="top" id="pbV-VD-k9M"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leadingMargin" id="0Ue-TI-TgS"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="0bG-GH-o7i"/>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="top" secondItem="F4S-IE-PeB" secondAttribute="bottom" constant="29" id="BES-gp-Xto"/>
+                <constraint firstItem="gf1-w4-tfU" firstAttribute="leading" secondItem="F4S-IE-PeB" secondAttribute="trailing" constant="4" id="BPG-FA-CEr"/>
+                <constraint firstAttribute="trailing" secondItem="gf1-w4-tfU" secondAttribute="trailing" constant="40" id="HXz-4S-avz"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" constant="241" id="Psu-BG-yd6"/>
+                <constraint firstItem="eMr-KM-Q7J" firstAttribute="trailing" secondItem="gTV-IL-0wX" secondAttribute="trailingMargin" id="Rhs-Dr-Cfh"/>
+                <constraint firstItem="2ZM-wW-s5a" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="topMargin" constant="62" id="cmN-bB-Dit"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="width" secondItem="gf1-w4-tfU" secondAttribute="width" id="dGM-Cl-IKK"/>
+                <constraint firstItem="gf1-w4-tfU" firstAttribute="firstBaseline" secondItem="F4S-IE-PeB" secondAttribute="firstBaseline" id="nao-qD-ZwC"/>
+                <constraint firstAttribute="bottom" secondItem="eMr-KM-Q7J" secondAttribute="bottom" constant="62" id="omu-87-qsj"/>
+                <constraint firstItem="F4S-IE-PeB" firstAttribute="baseline" secondItem="gf1-w4-tfU" secondAttribute="baseline" id="y6f-qh-eXJ"/>
+                <constraint firstAttribute="centerX" secondItem="2ZM-wW-s5a" secondAttribute="centerX" id="yZa-He-OyK"/>
+            </constraints>
+            <connections>
+                <outlet property="audioControlView" destination="eMr-KM-Q7J" id="UeV-aZ-xKI"/>
+                <outlet property="imgvTone" destination="2Ex-54-WE6" id="aSN-g3-AZL"/>
+                <outlet property="lblContentFirst" destination="F4S-IE-PeB" id="Pae-WK-Bpm"/>
+                <outlet property="lblContentSecond" destination="gf1-w4-tfU" id="lPS-kI-tjP"/>
+                <outlet property="toneView" destination="2ZM-wW-s5a" id="WzI-bH-fh7"/>
+            </connections>
+            <point key="canvasLocation" x="228" y="329"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="waveBorderDouble.png" width="239" height="112"/>
+        <image name="声调10.png" width="239" height="124"/>
+    </resources>
+</document>

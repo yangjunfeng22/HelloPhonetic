@@ -1,0 +1,10 @@
+chinese,pinyin,phone,tone,audioName,picName,type,weight,
+
+bā,bā,ba,0,ba1,ba0|ba1|ba2,6,1,
+pān,pān,pan,0,pan1,pan0|pan1|pan2,6,2,
+māng,māng,mang,0,mang1,mang0|mang1|mang2|mang3,6,3,
+fēng,fēng,feng,0,feng1,feng0|feng1|feng2|feng3,6,4,
+dū,dū,du,0,du1,du0|du1,6,5,
+tūn,tūn,tun,0,tun1,tun0|tun1|tun2,6,6,
+nōng,nōng,nong,0,nong1,nong0|nong1|nong2|nong3,6,7,
+lēng,lēng,leng,0,leng1,leng0|leng1|leng2|leng3,6,8,

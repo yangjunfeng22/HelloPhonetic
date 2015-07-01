@@ -1,0 +1,218 @@
+//
+//  LearnNavBackgroundView.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/6/3.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "LearnNavBackgroundView.h"
+#import <QuartzCore/QuartzCore.h>
+#import <pop/POP.h>
+
+@interface LearnNavBackgroundLayer : CALayer
+
+@property (nonatomic, strong) UIColor *trackTintColor;
+@property (nonatomic, strong) UIColor *toneTintColor;
+@property (nonatomic) NSInteger tone;
+@property (nonatomic) CGFloat toneHeight;
+@property (nonatomic) CGFloat progress;
+@property (nonatomic) CGFloat oProgress;
+
+@property (nonatomic, strong) NSMutableArray *arrCenterPoints;
+@property (nonatomic, strong) NSMutableArray *arrUnAlphaRects;
+
+
+@end
+
+@implementation LearnNavBackgroundLayer
++ (BOOL)needsDisplayForKey:(NSString *)key
+{
+    if ([key isEqualToString:@"progress"]) {
+        return YES;
+    } else {
+        return [super needsDisplayForKey:key];
+    }
+}
+
+- (void)setProgress:(CGFloat)progress
+{
+    _progress = progress;
+    [self setNeedsDisplay];
+}
+
+- (void)startCombineRects:(NSArray *)rects
+{
+    [self.arrUnAlphaRects setArray:rects];
+    [self setNeedsDisplay];
+}
+
+- (void)drawInContext:(CGContextRef)ctx
+{
+    [super drawInContext:ctx];
+    
+    DLOG_CMETHOD;
+//    
+//    CGRect rect = self.bounds;
+//    CGFloat totalWidth = rect.size.width * 0.6;
+//    
+//    CGFloat progress = MIN(self.progress, 1.0f - FLT_EPSILON);
+//    
+//    CGRect frame = CGRectMake(totalWidth*self.oProgress+rect.size.width * 0.2, 8, totalWidth*(progress-self.oProgress), self.toneHeight);
+//    CGFloat cornerW = CGRectGetWidth(frame) > self.toneHeight ? self.toneHeight*0.5:CGRectGetWidth(frame)*0.5;
+//    
+//    CGContextSetFillColorWithColor(ctx, self.toneTintColor.CGColor);
+//    CGMutablePathRef tonePath = CGPathCreateMutable();
+//    CGPathAddRoundedRect(tonePath, NULL, frame, cornerW, self.toneHeight*0.5);
+//    CGPathCloseSubpath(tonePath);
+//    CGContextAddPath(ctx, tonePath);
+//    CGContextFillPath(ctx);
+//    CGPathRelease(tonePath);
+//    
+//    CGContextFillPath(ctx);
+//    
+//    self.oProgress = self.progress;
+    
+    CGPoint *points = malloc(sizeof(CGPoint) * [self.arrUnAlphaRects count]);
+    for (int i = 0; i < [self.arrUnAlphaRects count]; ++i)
+    {
+        CGRect frame = [[self.arrUnAlphaRects objectAtIndex:i] CGRectValue];
+        CGPoint point = CGPointMake(CGRectGetMidX(frame), CGRectGetMidY(frame));
+        points[i] = point;
+        
+        //DLog(@"点: %@", NSStringFromCGPoint(points[i]));
+    }
+    CGContextSetAllowsAntialiasing(ctx, YES);
+    CGContextSetShouldAntialias(ctx, YES);
+    CGContextSetRGBStrokeColor(ctx, 0.8, 0.8, 0.8, 1.0);
+    CGContextSetLineWidth(ctx, 1.0);
+    CGContextBeginPath(ctx);
+    CGContextAddLines(ctx, points, [self.arrUnAlphaRects count]);
+    CGContextStrokePath(ctx);
+    
+    
+    CGContextSetFillColorWithColor(ctx, [UIColor whiteColor].CGColor);
+    for (NSValue *value in self.arrUnAlphaRects)
+    {
+        CGRect frame = [value CGRectValue];
+        CGMutablePathRef tonePath = CGPathCreateMutable();
+        CGPathAddRoundedRect(tonePath, NULL, frame, frame.size.width*0.5, frame.size.height*0.5);
+        CGPathCloseSubpath(tonePath);
+        CGContextAddPath(ctx, tonePath);
+        CGContextFillPath(ctx);
+        CGPathRelease(tonePath);
+        CGContextFillPath(ctx);
+    }
+}
+
+- (void)clearToneInContext:(CGContextRef)ctx
+{
+    CGRect rect = self.bounds;
+    CGContextClearRect(ctx, rect);
+}
+
+#pragma mark - 属性
+- (NSMutableArray *)arrCenterPoints
+{
+    if (!_arrCenterPoints){
+        _arrCenterPoints = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrCenterPoints;
+}
+
+- (NSMutableArray *)arrUnAlphaRects
+{
+    if (!_arrUnAlphaRects) {
+        _arrUnAlphaRects = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrUnAlphaRects;
+}
+
+@end
+
+@interface LearnNavBackgroundView ()
+
+@property (nonatomic, strong) NSMutableArray *arrCenterPoints;
+
+@end
+
+@implementation LearnNavBackgroundView
+
++ (Class)layerClass
+{
+    return [LearnNavBackgroundLayer class];
+}
+
+- (LearnNavBackgroundLayer *)navLayer
+{
+    return (LearnNavBackgroundLayer *)self.layer;
+}
+
+- (instancetype)init
+{
+    self = [super initWithFrame:CGRectMake(0, 0, 40, 40)];
+    if (self) {
+        
+    }
+    return self;
+}
+
+- (void)didMoveToWindow
+{
+    CGFloat windowContentsScale = self.window.screen.scale;
+    self.navLayer.contentsScale = windowContentsScale;
+    [self.navLayer setNeedsDisplay];
+}
+
+// Only override drawRect: if you perform custom drawing.
+//// An empty implementation adversely affects performance during animation.
+//- (void)drawRect:(CGRect)rect
+//{
+//    [super drawRect:rect];
+//    
+//    CGPoint *points = malloc(sizeof(CGPoint) * [self.arrCenterPoints count]);
+//    for (int i = 0; i < [self.arrCenterPoints count]; ++i)
+//    {
+//        points[i] = [[self.arrCenterPoints objectAtIndex:i] CGPointValue];
+//        
+//        DLog(@"点: %@", NSStringFromCGPoint(points[i]));
+//    }
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    CGContextSetAllowsAntialiasing(context, YES);
+//    CGContextSetShouldAntialias(context, YES);
+//    CGContextSetRGBStrokeColor(context, 0.7, 0.9, 0.9, 1.0);
+//    CGContextSetLineWidth(context, 2.0);
+//    CGContextBeginPath(context);
+//    CGContextAddLines(context, points, [self.arrCenterPoints count]);
+//    CGContextStrokePath(context);
+//}
+
+- (void)startCombineRects:(NSArray *)rects
+{
+    [self navLayer].backgroundColor = self.backgroundColor.CGColor;
+    [[self navLayer] startCombineRects:rects];
+    
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [self.navLayer pop_removeAnimationForKey:@"linesAnimation"];
+//        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"progress"];
+//        animation.duration = 0.3;
+//        animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+//        animation.fillMode = kCAFillModeForwards;
+//        animation.fromValue = [NSNumber numberWithFloat:0];
+//        animation.toValue = [NSNumber numberWithFloat:1];
+//        animation.beginTime = CACurrentMediaTime();
+//        animation.delegate = self;
+//        [self.navLayer addAnimation:animation forKey:@"linesAnimation"];
+//    });
+}
+
+#pragma mark - 属性
+- (NSMutableArray *)arrCenterPoints
+{
+    if (!_arrCenterPoints){
+        _arrCenterPoints = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrCenterPoints;
+}
+
+@end

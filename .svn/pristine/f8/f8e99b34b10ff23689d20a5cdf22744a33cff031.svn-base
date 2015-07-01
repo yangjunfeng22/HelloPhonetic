@@ -1,0 +1,242 @@
+//
+//  DoublePhoneCell.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/27.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "DoublePhoneCell.h"
+#import "Record+path.h"
+#import "UIView+Additions.h"
+#import "AnimateHelper.h"
+
+#import <AVFoundation/AVFoundation.h>
+
+static const NSString *audioBundle = @"DoublePhone";
+
+@interface DoublePhoneCell ()
+
+// 双音节需要播放两个音节的音频，用以控制播放代理的回调次数
+@property (nonatomic) NSInteger roopCount;
+@property (nonatomic, strong) NSMutableArray *arrTones;
+@property (nonatomic, strong) NSMutableArray *arrPinyins;
+@property (nonatomic, strong) NSMutableArray *arrPhones;
+@property (nonatomic, strong) NSMutableArray *arrAudioNames;
+
+@end
+
+@implementation DoublePhoneCell
+
+- (void)awakeFromNib
+{
+    _roopCount = 1;
+    
+    self.backgroundColor = self.superview.backgroundColor;
+    self.audioControlView.delegate = self;
+    self.audioControlView.backgroundColor = self.backgroundColor;
+    
+    self.toneView.backgroundColor = kToneBackgroundColor;
+    self.toneView.layer.cornerRadius = self.toneView.height * 0.1;
+    self.toneView.toneTintColor = kToneTintColor;
+    
+    self.lblContentFirst.backgroundColor = self.backgroundColor;
+    self.lblContentSecond.backgroundColor = self.backgroundColor;
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    
+    _roopCount = 1;
+    [self.arrTones removeAllObjects];
+    [self.arrPinyins removeAllObjects];
+    [self.arrPhones removeAllObjects];
+    [self.arrAudioNames removeAllObjects];
+    
+    self.audioControlView.controlMode = AudioControlModeDefault;
+    [self.toneView clearTone];
+}
+
+- (void)prepareForAppearLayout
+{
+    self.toneView.alpha           = 0;
+    self.audioControlView.alpha   = 0;
+    self.toneBackgroundView.alpha = 0;
+    self.lblContentFirst.alpha    = 0;
+    self.lblContentSecond.alpha   = 0;
+}
+
+- (void)layoutSubviewsAppear
+{
+    
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.audioControlView.alpha = 1;
+        [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1N.y toCenterY:center1O.y duration:0.8 delay:0 completion:^(BOOL finished) {
+            // 一开始自动播放相关音频
+            [self playSourceAudio];
+        }];
+    }];
+    
+    
+    CGPoint center2O = self.toneView.center;
+    CGPoint center2N = CGPointMake(self.toneView.centerX, -self.toneView.height);
+    [AnimateHelper transitionLayer:self.toneView.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.toneView.alpha = 1;
+        [AnimateHelper transitionLayer:self.toneView.layer fromCenterY:center2N.y toCenterY:center2O.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    CGFloat duration = 0.5;
+    
+    [AnimateHelper transitionView:self.lblContentFirst fromAlpha:0 toAlpha:1 duration:duration*3];
+    [AnimateHelper transitionView:self.lblContentSecond fromAlpha:0 toAlpha:1 duration:duration*3];
+}
+
+- (void)layoutSubviewsDisappear
+{
+    CGFloat duration = 0.5;
+    
+    CGPoint center1O = self.audioControlView.center;
+    CGPoint center1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.audioControlView fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint center2O = self.toneView.center;
+    CGPoint center2N = CGPointMake(self.toneView.centerX, -self.toneView.height);
+    [AnimateHelper transitionLayer:self.toneView.layer fromCenterY:center2O.y toCenterY:center2N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.toneView fromAlpha:1 toAlpha:0 duration:duration];
+    [AnimateHelper transitionView:self.lblContentFirst fromAlpha:1 toAlpha:0 duration:duration];
+    [AnimateHelper transitionView:self.lblContentSecond fromAlpha:1 toAlpha:0 duration:duration];
+}
+
+- (void)playSourceAudio
+{
+    [self.audioControlView playSourceAction:nil];
+}
+
+
+#pragma mark - 属性
+- (NSMutableArray *)arrTones
+{
+    if (!_arrTones) {
+        _arrTones = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrTones;
+}
+
+- (NSMutableArray *)arrPinyins
+{
+    if (!_arrPinyins)
+    {
+        _arrPinyins = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrPinyins;
+}
+
+- (NSMutableArray *)arrPhones
+{
+    if (!_arrPhones) {
+        _arrPhones = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrPhones;
+}
+
+- (NSMutableArray *)arrAudioNames
+{
+    if (!_arrAudioNames) {
+        _arrAudioNames = [[NSMutableArray alloc] initWithCapacity:1];
+    }
+    return _arrAudioNames;
+}
+
+- (void)setRecord:(Record *)record
+{
+    [super setRecord:record];
+
+    NSString *audio = [record.pinyin stringByReplacingOccurrencesOfString:@"|" withString:@""];
+    self.audioControlView.sourceAudio = [Record pathOfAudio:audio type:@"mp3" bundle:@"DoublePhone"];
+    
+    NSArray *arrTPhones = [record.phone componentsSeparatedByString:@"|"];
+    if (arrTPhones) {
+        [self.arrPhones setArray:arrTPhones];
+    }
+
+    NSArray *arrTPinyin = [record.pinyin componentsSeparatedByString:@"|"];
+    if (arrTPinyin) {
+        [self.arrPinyins setArray:arrTPinyin];
+    }
+    NSInteger pinyinCount = [self.arrPhones count];
+    
+    self.lblContentFirst.text = pinyinCount > 0 ? self.arrPinyins[0]:@"";
+    self.lblContentSecond.text = pinyinCount > 1 ? self.arrPinyins[1]:@"";
+    
+    NSArray *arrTAudioNames = [record.audioName componentsSeparatedByString:@"|"];
+    if (arrTAudioNames) {
+        [self.arrAudioNames setArray:arrTAudioNames];
+    }
+    
+    NSArray *arrTTones = [record.tone componentsSeparatedByString:@"|"];
+    if (arrTTones) {
+        [self.arrTones setArray:arrTTones];
+    }
+    
+    NSString *strToneName = [[NSString alloc] initWithFormat:@"声调%@", [record.tone stringByReplacingOccurrencesOfString:@"|" withString:@""]];
+    UIImage *imgTone = [UIImage imageNamed:strToneName];
+    self.imgvTone.image = imgTone;
+}
+
+#pragma mark - AudioControlView delegate
+- (void)startPlayAudio:(NSString *)audioPath duration:(NSTimeInterval)duration
+{
+    NSString *tone = [self.record.tone stringByReplacingOccurrencesOfString:@"|" withString:@""];
+    self.toneView.toneAnimateDuration = duration;
+    [self.toneView setTone:tone.integerValue animated:YES];
+    
+//    if (self.roopCount == 1)
+//    {
+//        self.toneFirstView.toneAnimateDuration = duration;
+//        NSInteger toneCount = [self.arrTones count];
+//        if (toneCount >= self.roopCount)
+//        {
+//            NSString *tone = self.arrTones[self.roopCount-1];
+//            [self.toneFirstView setTone:tone.integerValue animated:YES];
+//        }
+//    }
+//    else
+//    {
+//        self.toneSecondView.toneAnimateDuration = duration;
+//        NSInteger toneCount = [self.arrTones count];
+//        if (toneCount >= self.roopCount)
+//        {
+//            NSString *tone = self.arrTones[self.roopCount-1];
+//            [self.toneSecondView setTone:tone.integerValue animated:YES];
+//        }
+//    }
+}
+
+- (void)sourceAudioPlayerDidFinishPlaying:(id)player successfully:(BOOL)flag
+{
+//    if (self.roopCount >= 2)
+//    {
+//        self.roopCount = 1;
+//        // 重置一下音频
+//        NSInteger audioCount = [self.arrAudioNames count];
+//        if (audioCount >= self.roopCount)
+//        {
+//            self.audioControlView.sourceAudio = [Record pathOfAudio:self.arrAudioNames[self.roopCount-1] type:@"mp3" bundle:@"DoublePhone"];
+//        }
+//        return;
+//    }
+//    self.roopCount++;
+//    
+//    NSInteger audioCount = [self.arrAudioNames count];
+//    if (audioCount >= self.roopCount)
+//    {
+//        self.audioControlView.sourceAudio = [Record pathOfAudio:self.arrAudioNames[self.roopCount-1] type:@"mp3" bundle:@"DoublePhone"];
+//        [self.audioControlView playSourceAction:self.audioControlView.btnSource];
+//    }
+}
+
+@end

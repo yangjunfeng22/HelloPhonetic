@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>61CD3968-5BD3-4D1E-ABD4-C2684C1D74E5</string>
+	<key>IDESourceControlProjectName</key>
+	<string>HelloMyWords</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>4dc39fce-0073-564a-9300-05a839c11f61++5141</key>
+		<string>svn://192.168.10.250/hanecho/%252525E8%252525AF%252525AD%252525E9%2525259F%252525B3%252525E5%2525258A%252525A9%252525E6%25252595%25252599/code/iOS/HelloMyWords</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>HelloMyWords.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>4dc39fce-0073-564a-9300-05a839c11f61++5141</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>4dc39fce-0073-564a-9300-05a839c11f61++5141</key>
+		<string>svn://192.168.10.250/hanecho</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>svn://192.168.10.250/hanecho/%252525E8%252525AF%252525AD%252525E9%2525259F%252525B3%252525E5%2525258A%252525A9%252525E6%25252595%25252599/code/iOS/HelloMyWords/HelloMyWords.xcodeproj</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>4dc39fce-0073-564a-9300-05a839c11f61++5141</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>4dc39fce-0073-564a-9300-05a839c11f61++5141</string>
+			<key>IDESourceControlWCCName</key>
+			<string>HelloPhonetic</string>
+		</dict>
+	</array>
+</dict>
+</plist>

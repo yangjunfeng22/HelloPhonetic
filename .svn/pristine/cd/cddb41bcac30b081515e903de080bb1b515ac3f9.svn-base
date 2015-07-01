@@ -1,0 +1,287 @@
+//
+//  LearnViewController.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/27.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "LearnViewController.h"
+#import "UIView+Additions.h"
+#import "AnimateHelper.h"
+#import "ImportOperation.h"
+
+#import "LearnCollectionViewCell.h"
+#import "SinglePhoneCell.h"
+#import "DoublePhoneCell.h"
+#import "ExciseFirstCell.h"
+#import "ExciseSecondCell.h"
+#import "VowelsCell.h"
+#import "SyllableCell.h"
+#import "ConsonantsCell.h"
+#import "ExciseCell.h"
+
+#import "Store.h"
+#import "Record.h"
+#import "FetchedResultsCollectionDataSource.h"
+
+#define kCellTopEdge 5
+#define kCellLeftEdge 10
+#define kCellBottomEdge 5
+#define kCellRightEdge 10
+
+#define kItemWidth [UIScreen mainScreen].bounds.size.width*0.9
+#define kItemHeight [UIScreen mainScreen].bounds.size.height-69-103
+
+#define kMinimumLineSpacing 36.0f
+#define kMinimumInteritemSpacing 16.0f
+
+#define kSectionNumber 8
+#define kItemNumberPerSection 2
+
+@interface LearnViewController ()<UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
+
+@property (nonatomic, strong) UIButton *btnTQuit;
+@property (nonatomic, strong) UIButton *btnTNex;
+@property (nonatomic, readwrite) LearnCheckPointType type;
+@property (nonatomic, strong) FetchedResultsCollectionDataSource* dataSource;
+@property (nonatomic, strong) NSIndexPath *curPath;
+
+// 使用collectionView来加载待学习以及测试的界面.
+//  -- 一个section表示一个关卡。
+//  -- 每一个关卡下面的cell都是一种自定义的样式。
+//  -- 每一个关卡内的cell都是可以重用的。
+@property (nonatomic, strong) UICollectionViewFlowLayout *flowLayout;
+@property (nonatomic, strong) UICollectionView *collectionView;
+// 判断是否第一次加载当前页面，如果是，那么会有启动动画，如果不是，那么不会有启动动画。
+@property (nonatomic, getter=isFirstLaunch) BOOL firstLaunch;
+
+@end
+
+@implementation LearnViewController
+- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil learnType:(LearnCheckPointType)aType
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self)
+    {
+        _type = aType;
+    }
+    return self;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.view.backgroundColor = [UIColor clearColor];
+    self.firstLaunch = YES;
+    
+    NSDictionary *cellIdentifiers = @{@(0):@"SinglePhoneCell", @(1):@"ExciseFirstCell", @(2):@"DoublePhoneCell", @(3):@"ExciseSecondCell", @(4):@"VowelsCell", @(5):@"ConsonantsCell", @(6):@"SyllableCell", @(7):@"ExciseCell"};
+    
+    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"Record"];
+    fetchRequest.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"learnType" ascending:YES], [NSSortDescriptor sortDescriptorWithKey:@"weight" ascending:YES]];
+    
+    NSFetchedResultsController *fetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.store.mainManagedObjectContext sectionNameKeyPath:@"learnType" cacheName:nil];
+    self.dataSource = [[FetchedResultsCollectionDataSource alloc] initWithCollectionView:self.collectionView cellIdentifiers:cellIdentifiers fetchedResultsController:fetchedResultsController];
+    LearnViewController *weakSelf = self;
+    self.dataSource.configureCellBlock = ^(UICollectionViewCell *cell, Record *item, NSIndexPath *indexPath)
+    {
+        [weakSelf configureCell:cell item:item indexPath:indexPath];
+    };
+    
+    self.collectionView.dataSource = self.dataSource;
+    self.collectionView.delegate   = self;
+    
+    NSIndexPath *path = [NSIndexPath indexPathForItem:0 inSection:self.type];
+    [self.collectionView scrollToItemAtIndexPath:path atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:NO];
+    
+    [self layoutViewsAppear];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)configureCell:(UICollectionViewCell *)aCell item:(Record *)item indexPath:(NSIndexPath *)indexPath
+{
+    LearnCollectionViewCell *cell = (LearnCollectionViewCell *)aCell;
+    cell.record = item;
+    
+    // 当前种类的点击进来的，如果是第一个，那么需要使用动画重新排布一下界面。
+    if (indexPath.section == self.type && indexPath.item == 0 && self.isFirstLaunch)
+    {
+        self.firstLaunch = NO;
+        [cell layoutSubviewsAppear];
+    }
+}
+
+#pragma mark - relayout Subviews
+- (void)layoutViewsAppear
+{
+    if (self.animation)
+    {
+        [AnimateHelper transitionView:self.btnTQuit fromCenter:self.btnTQuit.center toCenter:CGPointMake(self.btnTQuit.centerX, 58) duration:0.6 delay:0.2 completion:nil];
+        [AnimateHelper transitionView:self.btnTNex fromCenter:self.btnTNex.center toCenter:CGPointMake(self.btnTNex.centerX, [UIScreen mainScreen].bounds.size.height-46) duration:0.6 delay:0.2 completion:nil];
+        
+//        UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:self.curPath];
+//        [cell layoutSubviewsAppear];
+    }
+    else
+    {
+        self.btnTQuit.centerY = 58;
+        self.btnTNex.centerY  = [UIScreen mainScreen].bounds.size.height-46;
+        self.collectionView.alpha = 1;
+    }
+}
+
+- (void)layoutViewsDisAppear
+{
+    if (self.animation)
+    {
+        [AnimateHelper transitionView:self.btnTQuit fromCenter:self.btnTQuit.center toCenter:CGPointMake(self.btnTQuit.centerX, -30) duration:0.6 completion:nil];
+        
+        [AnimateHelper transitionView:self.btnTNex fromCenter:self.btnTNex.center toCenter:CGPointMake(self.btnTNex.centerX, [UIScreen mainScreen].bounds.size.height+23) duration:0.3 completion:nil];
+        
+        LearnCollectionViewCell *cell = (LearnCollectionViewCell *)[self.collectionView cellForItemAtIndexPath:self.curPath];
+        [cell layoutSubviewsDisappear];
+
+    }
+    else
+    {
+        self.btnTQuit.centerY = -30;
+        self.btnTNex.centerY  = [UIScreen mainScreen].bounds.size.height+23;
+    }
+}
+
+#pragma mark - Action Manager
+- (IBAction)quitAction:(id)sender
+{
+    self.view.backgroundColor = [UIColor clearColor];
+    
+    [self layoutViewsDisAppear];
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(learnQuit:)])
+    {
+        [self.delegate learnQuit:self];
+    }
+}
+
+- (void)nextActtion:(id)sender
+{
+    
+    NSInteger totalCount = 0;
+    NSInteger curCount = 0;
+    
+    NSInteger sections = self.collectionView.numberOfSections;
+    
+    for (NSInteger i = 0; i < sections; i++)
+    {
+        NSInteger items = [self.collectionView numberOfItemsInSection:i];
+        totalCount += items;
+        
+        if (i < self.curPath.section)
+        {
+            NSInteger items = [self.collectionView numberOfItemsInSection:i];
+            curCount += items;
+        }
+    }
+    curCount += self.curPath.item;
+    NSInteger nexIndex = curCount+1;
+    
+    CGRect rect = CGRectMake(nexIndex*kItemWidth, 0, kItemWidth, kItemHeight);
+    [self.collectionView scrollRectToVisible:rect animated:YES];
+}
+
+#pragma mark - UICollectionView Delegate
+- (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    self.curPath = indexPath;
+}
+
+#pragma mark - 属性
+- (UIButton *)btnTQuit
+{
+    if (!_btnTQuit)
+    {
+        _btnTQuit = [[UIButton alloc] initWithFrame:CGRectMake(8, -30, 46, 30)];
+        [_btnTQuit setTitleColor:kColorFFBackground forState:UIControlStateNormal];
+        _btnTQuit.titleLabel.font = [UIFont systemFontOfSize:18];
+        [_btnTQuit setTitle:@"退出" forState:UIControlStateNormal];
+        [_btnTQuit addTarget:self action:@selector(quitAction:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:_btnTQuit];
+    }
+    return _btnTQuit;
+}
+
+- (UIButton *)btnTNex
+{
+    if (!_btnTNex)
+    {
+        _btnTNex = [[UIButton alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height, 167, 46)];
+        _btnTNex.centerX = [UIScreen mainScreen].bounds.size.width*0.5;
+        _btnTNex.titleLabel.font = [UIFont systemFontOfSize:18];
+        [_btnTNex setTitle:@"下一步" forState:UIControlStateNormal];
+        _btnTNex.layer.cornerRadius = self.btnTNex.height * 0.25;
+        _btnTNex.layer.borderColor = kColor00Background.CGColor;
+        _btnTNex.layer.borderWidth = 2.0;
+        [_btnTNex addTarget:self action:@selector(nextActtion:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:_btnTNex];
+    }
+    return _btnTNex;
+}
+
+- (UICollectionViewFlowLayout *)flowLayout
+{
+    if (!_flowLayout) {
+        if (kiOS7_OR_LATER) {
+            _flowLayout = [[UICollectionViewFlowLayout alloc] init];
+        }else{
+            _flowLayout = [[UICollectionViewFlowLayout alloc] init];
+        }
+        
+        _flowLayout.itemSize = CGSizeMake(kItemWidth-_flowLayout.minimumInteritemSpacing, kItemHeight);
+        // 头上到边框的距离。设置这个之后每一个cell就居中了。
+        UIEdgeInsets edge = {0, _flowLayout.minimumInteritemSpacing*0.5, 0, _flowLayout.minimumInteritemSpacing*0.5};
+        _flowLayout.sectionInset = edge;
+        // 滚动方向
+        [_flowLayout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
+    }
+    return _flowLayout;
+}
+
+- (UICollectionView *)collectionView
+{
+    if (!_collectionView)
+    {
+        CGRect frame = CGRectMake(0, 83, kItemWidth, kItemHeight);
+        _collectionView = [[UICollectionView alloc] initWithFrame:frame collectionViewLayout:self.flowLayout];
+        _collectionView.centerX         = [UIScreen mainScreen].bounds.size.width*0.5;
+        _collectionView.pagingEnabled   = YES;
+        //_collectionView.alpha           = 0;
+        _collectionView.scrollEnabled   = NO;
+        _collectionView.backgroundColor = self.view.backgroundColor;
+        
+        UINib *nibSinglePhone = [UINib nibWithNibName:@"SinglePhoneCell" bundle:nil];
+        [_collectionView registerNib:nibSinglePhone forCellWithReuseIdentifier:@"SinglePhoneCell"];
+        UINib *nibDoublePhone = [UINib nibWithNibName:@"DoublePhoneCell" bundle:nil];
+        [_collectionView registerNib:nibDoublePhone forCellWithReuseIdentifier:@"DoublePhoneCell"];
+        UINib *nibExciseFirst = [UINib nibWithNibName:@"ExciseFirstCell" bundle:nil];
+        [_collectionView registerNib:nibExciseFirst forCellWithReuseIdentifier:@"ExciseFirstCell"];
+        UINib *nibExciseSecond = [UINib nibWithNibName:@"ExciseSecondCell" bundle:nil];
+        [_collectionView registerNib:nibExciseSecond forCellWithReuseIdentifier:@"ExciseSecondCell"];
+        UINib *nibVowels = [UINib nibWithNibName:@"VowelsCell" bundle:nil];
+        [_collectionView registerNib:nibVowels forCellWithReuseIdentifier:@"VowelsCell"];
+        UINib *nibSyllable = [UINib nibWithNibName:@"SyllableCell" bundle:nil];
+        [_collectionView registerNib:nibSyllable forCellWithReuseIdentifier:@"SyllableCell"];
+        UINib *nibConsonants = [UINib nibWithNibName:@"ConsonantsCell" bundle:nil];
+        [_collectionView registerNib:nibConsonants forCellWithReuseIdentifier:@"ConsonantsCell"];
+        UINib *nibExcise = [UINib nibWithNibName:@"ExciseCell" bundle:nil];
+        [_collectionView registerNib:nibExcise forCellWithReuseIdentifier:@"ExciseCell"];
+        [self.view addSubview:_collectionView];
+    }
+    return _collectionView;
+}
+
+@end

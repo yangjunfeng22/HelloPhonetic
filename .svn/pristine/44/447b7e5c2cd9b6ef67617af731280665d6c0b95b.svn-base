@@ -1,0 +1,94 @@
+//
+//  HomeViewController.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/21.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+#import "HomeViewController.h"
+#import "UIView+Additions.h"
+#import "AudioRecordAndPlayViewController.h"
+
+#import "LoginViewController.h"
+//#import "AudioNavViewController.h"
+#import "LearnNavViewController.h"
+
+
+@interface HomeViewController ()<LoginDelegate, learnNavDelegate>
+{
+    LearnNavViewController *audioNav;
+}
+
+@end
+
+@implementation HomeViewController
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.btnStart.layer.cornerRadius = self.btnStart.height * 0.25;
+    self.btnStart.layer.borderColor = kColor00Background.CGColor;
+    self.btnStart.layer.borderWidth = 2.0;
+    
+    self.lblExample.text = @"变成";
+    
+    NSString *audioPath = [[NSBundle mainBundle] pathForResource:@"biɑnchenɡ42.caf" ofType:nil];
+    self.audioControlView.backgroundColor = self.view.backgroundColor;
+    self.audioControlView.sourceAudio = audioPath;
+//    AudioRecordAndPlayViewController *audioRecordAndPlay = [[AudioRecordAndPlayViewController alloc] init];
+//    audioRecordAndPlay.sourceAudio = audioPath;
+//    [self addChildViewController:audioRecordAndPlay];
+//    
+//    CGRect frame = CGRectMake(0, self.view.height*0.25, self.view.width, 5/*180*/);
+//    audioRecordAndPlay.view.frame = frame;
+//    audioRecordAndPlay.view.centerY = self.view.height*0.5;
+//    [self.view addSubview:audioRecordAndPlay.view];
+//    [audioRecordAndPlay didMoveToParentViewController:self];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (IBAction)startAction:(id)sender
+{
+    audioNav = [[LearnNavViewController alloc] init];
+    audioNav.delegate = self;
+    [self addChildViewController:audioNav];
+//    audioNav.view.alpha = 0;
+    audioNav.view.frame = self.view.frame;
+    [self.view addSubview:audioNav.view];
+    [audioNav didMoveToParentViewController:self];
+    
+//    [UIView animateWithDuration:0.8 animations:^{
+//        audioNav.view.alpha = 1;
+//    }];
+}
+
+- (IBAction)loginOrRegistAction:(id)sender
+{
+    LoginViewController *login = [[LoginViewController alloc] initWithNibName:@"LoginViewController" bundle:nil];
+    login.delegate = self;
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:login];
+    [self presentViewController:nav animated:YES completion:^{}];
+}
+
+
+#pragma mark - 用户登陆 delegate
+- (void)userLogined:(id)sender
+{
+    [self startAction:self.btnStart];
+}
+
+#pragma mark - 音频导航 delegate
+- (void)userLogout:(id)sender
+{
+    [audioNav removeFromParentViewController];
+    [audioNav.view removeFromSuperview];
+    audioNav = nil;
+}
+
+@end

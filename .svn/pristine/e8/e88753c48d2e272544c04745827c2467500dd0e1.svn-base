@@ -1,0 +1,10 @@
+//
+//  Config.xcconfig
+//  LiveInShanghai
+//
+//  Created by junfengyang on 15/1/4.
+//  Copyright (c) 2015年 junfengyang. All rights reserved.
+//
+
+//  pop库加载的时候的设置
+HEADER_SEARCH_PATHS = "${SRCROOT}/HelloMyWords/ThirdLibraries" "${SRCROOT}/HelloMyWords/ThirdLibraries/pop" OTHER_CFLAGS=$(inherited) "-isystem${SRCROOT}/HelloMyWords/ThirdLibraries" "-isystem${SRCROOT}/HelloMyWords/ThirdLibraries/pop"

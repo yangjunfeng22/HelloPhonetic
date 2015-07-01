@@ -1,0 +1,198 @@
+//
+//  ExciseCell.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/28.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "ExciseCell.h"
+#import <AVFoundation/AVFoundation.h>
+#import "Record+path.h"
+#import "UIImageView+Extra.h"
+#import "UIView+Additions.h"
+#import "AnimateHelper.h"
+#import "AudioPlayHelper.h"
+#import "AudioRecord.h"
+
+#import "SVProgressHUD.h"
+
+#import "UIImageView+Extra.h"
+
+@interface ExciseCell ()<AudioRecordAndPlayDelegate>
+
+@end
+
+@implementation ExciseCell
+//@synthesize record = _record;
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super initWithCoder:aDecoder];
+    if (self)
+    {
+        
+    }
+    return self;
+}
+
+- (void)awakeFromNib
+{
+    [super awakeFromNib];
+    
+    self.backgroundColor = self.superview.backgroundColor;
+    self.audioControlView.controlMode = AudioControlModeRecordOnly;
+    self.audioControlView.backgroundColor = self.backgroundColor;
+
+    self.lblContent.backgroundColor = self.backgroundColor;
+    self.lblResult.backgroundColor = self.backgroundColor;
+    self.imgvPraise.backgroundColor = self.backgroundColor;
+    
+    
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    
+    self.lblResult.text = @"";
+    self.imgvPraise.image = nil;
+    self.audioControlView.controlMode = AudioControlModeRecordOnly;
+    [self.audioControlView resetAudioControlState];
+}
+
+- (void)prepareForAppearLayout
+{
+    self.audioControlView.alpha = 0;
+    self.lblContent.alpha = 0;
+    self.imgvPraise.alpha = 0;
+}
+
+- (void)layoutSubviewsAppear
+{
+    CGPoint centerIO = self.audioControlView.center;
+    CGPoint centerIN = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height*0.5);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:centerIO.y toCenterY:centerIN.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.audioControlView.alpha = 1;
+        [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:centerIN.y toCenterY:centerIO.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    CGPoint center1O = self.lblContent.center;
+    CGPoint center1N = CGPointMake(self.lblContent.centerX, -self.lblContent.height*0.5);
+    [AnimateHelper transitionLayer:self.lblContent.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.lblContent.alpha = 1;
+        [AnimateHelper transitionLayer:self.lblContent.layer fromCenterY:center1N.y toCenterY:center1O.y duration:0.8 delay:0 completion:nil];
+    }];
+    
+    
+    CGPoint centerImgO = self.imgvPraise.center;
+    CGPoint centerImgN = CGPointMake(self.imgvPraise.centerX, self.height+self.imgvPraise.height+self.audioControlView.height*0.5);
+    [AnimateHelper transitionLayer:self.imgvPraise.layer fromCenterY:centerImgO.y toCenterY:centerImgN.y duration:0 delay:0 completion:^(BOOL finished) {
+        self.imgvPraise.alpha = 1;
+        [AnimateHelper transitionLayer:self.imgvPraise.layer fromCenterY:centerImgN.y toCenterY:centerImgO.y duration:0.8 delay:0 completion:nil];
+    }];
+}
+
+- (void)layoutSubviewsDisappear
+{
+    CGFloat duration = 0.5;
+    
+    CGPoint centerT1O = self.audioControlView.center;
+    CGPoint centerT1N = CGPointMake(self.audioControlView.centerX, self.height+self.audioControlView.height*0.5);
+    [AnimateHelper transitionLayer:self.audioControlView.layer fromCenterY:centerT1O.y toCenterY:centerT1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.audioControlView fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint center1O = self.lblContent.center;
+    CGPoint center1N = CGPointMake(self.lblContent.centerX, -self.lblContent.height*0.5);
+    [AnimateHelper transitionLayer:self.lblContent.layer fromCenterY:center1O.y toCenterY:center1N.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.lblContent fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint centerImgO = self.imgvPraise.center;
+    CGPoint centerImgN = CGPointMake(self.imgvPraise.centerX, self.height+self.imgvPraise.height);
+    [AnimateHelper transitionLayer:self.imgvPraise.layer fromCenterY:centerImgO.y toCenterY:centerImgN.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.imgvPraise fromAlpha:1 toAlpha:0 duration:duration];
+    
+    CGPoint centerRO = self.lblResult.center;
+    CGPoint centerRN = CGPointMake(self.lblResult.centerX, self.height+self.lblResult.height);
+    [AnimateHelper transitionLayer:self.lblResult.layer fromCenterY:centerRO.y toCenterY:centerRN.y duration:0.8 delay:0 completion:nil];
+    [AnimateHelper transitionView:self.lblResult fromAlpha:1 toAlpha:0 duration:duration];
+}
+
+- (void)resetAudioState
+{
+    [self.audioControlView resetAudioControlState];
+}
+
+#pragma mark - 属性
+- (void)setRecord:(Record *)record
+{
+    [super setRecord:record];
+    DLOG_CMETHOD;
+    self.audioControlView.delegate = self;
+    self.lblContent.text = record.phone;
+}
+
+#pragma mark - AudioControlView delegate
+- (void)startPlayAudio:(NSString *)audioPath duration:(NSTimeInterval)duration
+{
+    
+}
+
+- (void)sourceAudioPlayerDidFinishPlaying:(id)player successfully:(BOOL)flag
+{
+    
+}
+
+- (void)audioRecorderDidFinishedRecord:(id)recorder
+{
+    [SVProgressHUD showWithStatus:@"正在识别..." maskType:SVProgressHUDMaskTypeNone];
+}
+
+- (void)audioRecorderDidFinishedAnalysisResult:(AudioRecord *)result successuflly:(BOOL)flag
+{
+    if (flag)
+    {
+        [SVProgressHUD dismiss];
+        
+        NSString *audio = @"wrong.mp3";
+        UIImage *imgPraise = [UIImage imageNamed:@"sad"];
+        
+        if ([result.phone isEqualToString:self.record.phone])
+        {
+            // 显示用户读正确了
+            audio = @"right.mp3";
+            imgPraise = [UIImage imageNamed:@"happy"];
+            self.record.rightTimes = @(self.record.rightTimes.integerValue+1);
+        }
+        else
+        {
+            self.record.wrongTimes = @(self.record.wrongTimes.integerValue+1);
+            self.record.wrongTone = result.tone;
+        }
+        
+        AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
+        [appDelegate.store saveContext];
+        
+        NSString *str = [[NSString alloc] initWithFormat:@"识别的结果: %@, %@, %@, %@", result.chinese, result.pinyin, result.phone, result.tone];
+        //DLog(@"识别的结果: %@, %@, %@, 源数据: %@, ", result.phone, result.tone, result.pinyin, self.record.phone);
+        self.lblResult.text = str;
+        
+        self.imgvPraise.image = imgPraise;
+        
+        NSString *audioName = [[NSString alloc] initWithFormat:@"%@%@", self.record.phone, result.tone];
+        self.audioControlView.sourceAudio = [Record pathOfAudio:audioName bundle:@"Excise"];
+        
+        [AudioPlayHelper stopAndCleanAudioPlay];
+        NSString *path = [[NSBundle mainBundle] pathForResource:audio ofType:nil];
+        AudioPlayHelper *audioPlayer = [AudioPlayHelper initWithAudioName:path delegate:nil];
+        audioPlayer.volume = kSoundVolume;
+        [audioPlayer playAudio];
+    }
+    else
+    {
+        //提示用户未能录音
+        [SVProgressHUD showErrorWithStatus:@"您似乎没有讲任何话!" maskType:SVProgressHUDMaskTypeClear];
+    }
+}
+
+@end

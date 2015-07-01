@@ -1,0 +1,237 @@
+//
+//  FetchedResultsCollectionDataSource.m
+//  HelloMyWords
+//
+//  Created by junfengyang on 15/5/28.
+//  Copyright (c) 2015年 HSChinese iOS Team. All rights reserved.
+//
+
+#import "FetchedResultsCollectionDataSource.h"
+
+static NSInteger const kNumberOfSection = 5;
+
+@interface FetchedResultsCollectionDataSource ()<NSFetchedResultsControllerDelegate>
+@property (nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
+@property (nonatomic, strong) UICollectionView *collectionView;
+@property (nonatomic)  NSMutableDictionary *dicCellIdentifier;
+
+@property NSMutableArray *sectionChanges;
+@property NSMutableArray *itemChanges;
+
+@property (nonatomic) NSMutableDictionary *dicIndex;
+
+
+@end
+
+@implementation FetchedResultsCollectionDataSource
+
+- (id)initWithCollectionView:(UICollectionView *)aCollectionView cellIdentifiers:(NSDictionary *)cellIdentifiers fetchedResultsController:(NSFetchedResultsController *)aFetchedResultsController
+{
+    self = [super init];
+    if (self)
+    {
+        self.collectionView = aCollectionView;
+        self.fetchedResultsController = aFetchedResultsController;
+        if (cellIdentifiers) {
+            [self.dicCellIdentifier setDictionary:cellIdentifiers];
+        }
+        [self setup];
+    }
+    return self;
+}
+
+- (void)setup
+{
+    self.collectionView.dataSource = self;
+    self.fetchedResultsController.delegate = self;
+    [self.fetchedResultsController performFetch:NULL];
+}
+
+- (void)changePredicate:(NSPredicate *)predicate
+{
+    NSAssert(self.fetchedResultsController.cacheName == NULL, @"Can't change predicate when you have a caching fetched results controller");
+    NSFetchRequest *fetchRequest = self.fetchedResultsController.fetchRequest;
+    fetchRequest.predicate = predicate;
+    //NSInteger numberOfSections = self.collectionView.numberOfSections;
+    [self.fetchedResultsController performFetch:NULL];
+    //NSInteger newNumberOfSections = self.fetchedResultsController.sections.count;
+    [self.collectionView reloadData];
+}
+
+- (id)itemAtIndexPath:(NSIndexPath *)path
+{
+    id item;
+    NSInteger section = path.section;
+    if (section == 1/* || section == 3*/)
+    {
+        // 使用当前section下面的序列集合。
+        NSMutableIndexSet *indexSet = [self.dicIndex objectForKey:@(section)];
+        // 集合元素的总数量
+        NSInteger count = [indexSet count];
+        // 随机一个元素的序号出来。
+        NSInteger index = arc4random()%(count > 0 ? count:[self.fetchedResultsController.sections[(NSUInteger) section] numberOfObjects]);
+        // 获取该序号下面集合中的元素
+        NSInteger itemIndex = [indexSet indexLessThanOrEqualToIndex:index];
+        // 将这个元素从元素集合中删除
+        [indexSet removeIndex:index];
+        // 从查找结果中根据获取出来的元素所表示序号获取到数据。
+        item = [self.fetchedResultsController objectAtIndexPath:[NSIndexPath indexPathForItem:itemIndex inSection:section]];
+    }
+    else
+    {
+        item = [self.fetchedResultsController objectAtIndexPath:[NSIndexPath indexPathForItem:path.item inSection:section]];
+    }
+    
+    return item;
+}
+
+- (id)selectedItem
+{
+    return [self itemAtIndexPath:[[self.collectionView indexPathsForSelectedItems] lastObject]];
+}
+
+- (void)configureCell:(UICollectionViewCell *)cell atIndexPath:(NSIndexPath *)path
+{
+    id item = [self itemAtIndexPath:path];
+    if (self.configureCellBlock) {
+        self.configureCellBlock(cell, item, path);
+    }
+}
+
+#pragma mark - UICollectionView DataSource
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
+{
+    //DLog(@"colletion的section: %@", @(self.fetchedResultsController.sections.count));
+    return self.fetchedResultsController.sections.count;
+}
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    NSUInteger i = [self.fetchedResultsController.sections[(NSUInteger) section] numberOfObjects];
+    if (section == 1/* || section == 3*/)
+    {
+        // 先获取对应section下面的所有的数量。
+        NSMutableIndexSet *indexSet = [[NSMutableIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, i)];
+        [self.dicIndex setObject:indexSet forKey:@(section)];
+        
+        i = kNumberOfSection;
+    }
+    //DLog(@"每个section的item数量: %@", @(i));
+    return i;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:[self.dicCellIdentifier objectForKey:@(indexPath.section)] forIndexPath:indexPath];
+    [self configureCell:cell atIndexPath:indexPath];
+    return cell;
+}
+
+#pragma mark NSFetchedResultsControllerDelegate
+
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
+{
+    _sectionChanges = [[NSMutableArray alloc] init];
+    _itemChanges = [[NSMutableArray alloc] init];
+}
+
+- (void)controllerWillChangeContent:(NSFetchedResultsController*)controller
+{
+    [self.collectionView performBatchUpdates:^
+    {
+        for (NSDictionary *change in _sectionChanges)
+        {
+            [change enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop)
+            {
+                NSFetchedResultsChangeType type = [key unsignedIntegerValue];
+                switch(type)
+                {
+                    case NSFetchedResultsChangeInsert:
+                        [self.collectionView insertSections:[NSIndexSet indexSetWithIndex:[obj unsignedIntegerValue]]];
+                        break;
+                    case NSFetchedResultsChangeDelete:
+                        [self.collectionView deleteSections:[NSIndexSet indexSetWithIndex:[obj unsignedIntegerValue]]];
+                        break;
+                    case NSFetchedResultsChangeMove:
+                    case NSFetchedResultsChangeUpdate:
+                        break;
+                }
+            }];
+        }
+        for (NSDictionary *change in _itemChanges)
+        {
+            [change enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop)
+             {
+                NSFetchedResultsChangeType type = [key unsignedIntegerValue];
+                switch(type)
+                 {
+                    case NSFetchedResultsChangeInsert:
+                        [self.collectionView insertItemsAtIndexPaths:@[obj]];
+                        break;
+                    case NSFetchedResultsChangeDelete:
+                        [self.collectionView deleteItemsAtIndexPaths:@[obj]];
+                        break;
+                    case NSFetchedResultsChangeUpdate:
+                        [self.collectionView reloadItemsAtIndexPaths:@[obj]];
+                        break;
+                    case NSFetchedResultsChangeMove:
+                        [self.collectionView moveItemAtIndexPath:obj[0] toIndexPath:obj[1]];
+                        break;
+                }
+            }];
+        }
+    } completion:^(BOOL finished) {
+        _sectionChanges = nil;
+        _itemChanges = nil;
+    }];
+}
+
+- (void)controller:(NSFetchedResultsController *)controller didChangeSection:(id <NSFetchedResultsSectionInfo>)sectionInfo
+           atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type {
+    NSMutableDictionary *change = [[NSMutableDictionary alloc] init];
+    change[@(type)] = @(sectionIndex);
+    [_sectionChanges addObject:change];
+}
+
+- (void)controller:(NSFetchedResultsController *)controller didChangeObject:(id)anObject
+       atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
+      newIndexPath:(NSIndexPath *)newIndexPath
+{
+    NSMutableDictionary *change = [[NSMutableDictionary alloc] init];
+    switch(type) {
+        case NSFetchedResultsChangeInsert:
+            change[@(type)] = newIndexPath;
+            break;
+        case NSFetchedResultsChangeDelete:
+            change[@(type)] = indexPath;
+            break;
+        case NSFetchedResultsChangeUpdate:
+            change[@(type)] = indexPath;
+            break;
+        case NSFetchedResultsChangeMove:
+            change[@(type)] = @[indexPath, newIndexPath];
+            break;
+    }
+    [_itemChanges addObject:change];
+}
+
+#pragma mark - 属性
+- (NSMutableDictionary *)dicCellIdentifier
+{
+    if (!_dicCellIdentifier)
+    {
+        _dicCellIdentifier = [[NSMutableDictionary alloc] initWithCapacity:2];
+    }
+    return _dicCellIdentifier;
+}
+
+- (NSMutableDictionary *)dicIndex
+{
+    if (!_dicIndex) {
+        _dicIndex = [[NSMutableDictionary alloc] initWithCapacity:1];
+    }
+    return _dicIndex;
+}
+
+
+@end

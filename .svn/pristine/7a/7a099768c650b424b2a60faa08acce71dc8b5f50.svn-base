@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="gTV-IL-0wX" customClass="ConsonantsCell">
+            <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="400" height="500"/>
+                <subviews>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QSE-Jr-nyA">
+                        <rect key="frame" x="40" y="389" width="320" height="56"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="56" id="Dqz-uj-qWV"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="boldSystem" pointSize="56"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="none" translatesAutoresizingMaskIntoConstraints="NO" id="Jag-cw-J3A">
+                        <rect key="frame" x="8" y="8" width="384" height="373"/>
+                        <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="3" id="R9b-5z-KU6">
+                            <size key="itemSize" width="384" height="373"/>
+                            <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                            <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                            <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                        </collectionViewFlowLayout>
+                        <connections>
+                            <outlet property="dataSource" destination="gTV-IL-0wX" id="c9t-ge-OQO"/>
+                            <outlet property="delegate" destination="gTV-IL-0wX" id="Pjy-Pn-TKm"/>
+                        </connections>
+                    </collectionView>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            </view>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="QSE-Jr-nyA" secondAttribute="bottom" constant="55" id="4eZ-LW-8pi"/>
+                <constraint firstItem="Jag-cw-J3A" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="topMargin" id="ELU-ig-eZi"/>
+                <constraint firstItem="QSE-Jr-nyA" firstAttribute="centerX" secondItem="Jag-cw-J3A" secondAttribute="centerX" id="T2G-6J-Fcb"/>
+                <constraint firstItem="QSE-Jr-nyA" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" constant="40" id="cAh-M4-TNV"/>
+                <constraint firstItem="QSE-Jr-nyA" firstAttribute="top" secondItem="Jag-cw-J3A" secondAttribute="bottom" constant="8" symbolic="YES" id="jUE-u8-S7g"/>
+                <constraint firstItem="Jag-cw-J3A" firstAttribute="trailing" secondItem="gTV-IL-0wX" secondAttribute="trailingMargin" id="rzq-VP-gf6"/>
+                <constraint firstItem="Jag-cw-J3A" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leadingMargin" id="s4O-jV-ISm"/>
+            </constraints>
+            <connections>
+                <outlet property="imageCollectionView" destination="Jag-cw-J3A" id="Qfg-VQ-dTR"/>
+                <outlet property="lblContent" destination="QSE-Jr-nyA" id="ah3-KC-x2q"/>
+            </connections>
+            <point key="canvasLocation" x="235" y="327"/>
+        </collectionViewCell>
+    </objects>
+</document>
